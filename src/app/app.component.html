@@ -1,6 +1,6 @@
 <div class="container-fluid mt-2">
   <!-- CAMERA -->
-<div class="video-container">
+<div class="video-container text-center">
   <video
     [class.show]="!isCaptured"
     [class.hide]="isCaptured"
@@ -21,7 +21,7 @@
   ></canvas>
 </div>
 
-<div class="snap-container" *ngIf="!isCaptured" >
+<div class="snap-container text-center" *ngIf="!isCaptured" >
   <button class="btn btn-primary" (click)="capture()">
     Snap Photo
   </button>
@@ -41,7 +41,7 @@
 
 </ngx-doc-scanner>
 
-  <div class="container mt-4" id="images">
+  <div class="container mt-4 text-center" id="images">
   </div>
 </div>
 
