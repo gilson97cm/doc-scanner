@@ -193,8 +193,8 @@ export class AppComponent implements AfterViewInit {
       let img = new Image();
       img.src = String(this.captures[i].url);
       img.onload = function () {
-        const imgWidth = 500//this.width;
-        const imgHeight = 700//this.height;
+        const imgWidth = 640//this.WIDTH;
+        const imgHeight =480 //this.HEIGHT;
         const imgRatio = imgWidth / imgHeight;
         if (i > 0) { pdf.addPage(); }
         pdf.setPage(i + 1);
