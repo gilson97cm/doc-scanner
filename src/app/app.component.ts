@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { DocScannerConfig } from 'src/lib/ngx-document-scanner';
-import { OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
-import { DomSanitizer } from '@angular/platform-browser';
+import { ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { Capture } from './models/Capture';
 import jsPDF from 'jspdf';
 
@@ -23,42 +22,41 @@ export class AppComponent implements AfterViewInit {
   @ViewChild("canvas")
   public canvas: ElementRef;
 
-  // captures: any[] = [];
   captureModel: Capture
-  captures: Capture[] = [];
-  error: any;
+  captures: Capture[];
+  error: string;
   isCaptured: boolean;
-  // isScanMode: boolean;
 
   //CROP
   overZone = false;
   image: File;
   processing: boolean;
   test: boolean;
-  config: DocScannerConfig = {
-    editorBackgroundColor: '#fafafa',
-    buttonThemeColor: 'primary',
-    cropToolColor: '#ff4081',
-    cropToolShape: 'rect',
-    cropToolDimensions: {
-      width: 16,
-      height: 16
-    },
-    // cropToolLineWeight:100,
-    exportImageIcon: 'save',
-    editorDimensions: {
-      width: '99vw',
-      height: '82vh'
-    },
-    extraCss: {
-      position: 'absolute',
-      top: 0,
-      left: 0
-    }
-  };
+  config: DocScannerConfig;
 
-  constructor(private _sanitizer: DomSanitizer) {
-    // this.isScanMode = true;
+  constructor() {
+    this.isCaptured = false;
+    this.captures = [];
+    this.config = {
+      editorBackgroundColor: '#fafafa',
+      buttonThemeColor: 'primary',
+      cropToolColor: '#ff4081',
+      cropToolShape: 'rect',
+      cropToolDimensions: {
+        width: 16,
+        height: 16
+      },
+      exportImageIcon: 'save',
+      editorDimensions: {
+        width: '99vw',
+        height: '82vh'
+      },
+      extraCss: {
+        position: 'absolute',
+        top: 0,
+        left: 0
+      }
+    };
   }
 
   async ngAfterViewInit() {
@@ -107,7 +105,7 @@ export class AppComponent implements AfterViewInit {
     return new File([u8arr], filename, { type: mime });
   }
 
-  loadFile(event: any) {
+  loadFile(event) {
     this.processing = true;
     this.overZone = false;
     let f: File;
@@ -133,7 +131,7 @@ export class AppComponent implements AfterViewInit {
     }) !== -1;
   }
 
-  drawImageToCanvas(image: any) {
+  drawImageToCanvas(image) {
     this.canvas.nativeElement
       .getContext("2d")
       .drawImage(image, 0, 0, this.WIDTH, this.HEIGHT);
@@ -167,6 +165,11 @@ export class AppComponent implements AfterViewInit {
     img.style.margin = '5px'
     divImages.appendChild(img)
 
+    
+    const backBtn = <HTMLButtonElement>document.querySelector('button[name="back"]')
+    backBtn.click()
+    const exitBtn = <HTMLButtonElement>document.querySelector('button[name="exit"]')
+    exitBtn.click()
     this.exitEditor()
   }
 

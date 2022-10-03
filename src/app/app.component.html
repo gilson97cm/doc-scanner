@@ -25,11 +25,12 @@
   <button class="btn btn-primary" (click)="capture()">
     Snap Photo
   </button>
-  <button class="btn btn-danger ml-2" (click)="downloadPdf()" >Finish</button>
+  <button class="btn btn-danger ml-2" (click)="downloadPdf()" [disabled]="captures.length <= 0" >Finish: {{ captures.length }}</button>
 </div>
 <div class="video-container">
   
   <ngx-doc-scanner 
+  id="scanner"
   *ngIf="image"
   [file]="image"
   (editResult)="editResult($event)"

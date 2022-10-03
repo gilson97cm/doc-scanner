@@ -7,7 +7,6 @@ import { FlexLayoutModule } from '@angular/flex-layout';
 import { NgxDocumentScannerModule, OpenCVConfig } from 'src/lib/ngx-document-scanner';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { CameraComponent } from './components/camera/camera.component';
 import { CommonModule } from '@angular/common';
 
 
@@ -17,8 +16,7 @@ const openCvConfig: OpenCVConfig = {
 
 @NgModule({
   declarations: [
-    AppComponent,
-    CameraComponent
+    AppComponent
   ],
   imports: [
     BrowserModule,
