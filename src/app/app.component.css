@@ -1,6 +1,39 @@
-#images{
-  border: solid 1px gray;
+/* @import url('../css/bootstrap.min.css');
+@import url('../css/layout.css');
+@import url('../css/accordion-custom.css');
+@import url('../css/tab-custom.css');
+@import url('../css/style.css');
+@import url('../css/helper-class.css'); */
+/* #images{
+  border: dashed 1px gray;
   width: 100%;
   height: auto;
 }
+
+
+.dropZone {
+  border: 2px dashed  rgb(63, 81, 181);
+  width: 600px;
+  height:300px;
+  max-width: 98vw;
+  max-height: 50vh;
+  transition: 0.5s all;
+  cursor: pointer;
+  border-radius: 20px;
+}
+
+.drop-hover {
+  background-color: rgba(63, 81, 181, 0.15);
+}
+
+.inner-text {
+  font-size: 27px;
+}
+
+.cloud-icon {
+  font-size: 64px;
+  margin-left: calc((100% - 64px) / 2)
+
+} */
+
 

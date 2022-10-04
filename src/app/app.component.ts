@@ -12,7 +12,16 @@ import jsPDF from 'jspdf';
 
 export class AppComponent implements AfterViewInit {
 
-  // CAMERA
+  deviceSelected: string;
+  availableDevices: MediaDeviceInfo[];
+  devicesList: MediaDeviceInfo[];
+  deviceCurrent: MediaDeviceInfo;
+  hasDevices: boolean;
+  hasPermission: boolean;
+  emptyDevice: MediaDeviceInfo;
+
+
+  // // CAMERA
   WIDTH = 640;
   HEIGHT = 480;
 
@@ -27,15 +36,28 @@ export class AppComponent implements AfterViewInit {
   error: string;
   isCaptured: boolean;
 
-  //CROP
+  // //CROP
   overZone = false;
   image: File;
   processing: boolean;
   test: boolean;
   config: DocScannerConfig;
 
+  isCameraOpen: boolean
+  isGalleryOpen: boolean
+
   constructor() {
+    this.availableDevices = []
     this.isCaptured = false;
+    this.emptyDevice = {
+      deviceId: '',
+      groupId: '',
+      kind: null,
+      label: '',
+      toJSON: null
+    }
+    this.deviceCurrent = this.emptyDevice
+
     this.captures = [];
     this.config = {
       editorBackgroundColor: '#fafafa',
@@ -57,31 +79,96 @@ export class AppComponent implements AfterViewInit {
         left: 0
       }
     };
+
+    this.isCameraOpen = false
+    this.isGalleryOpen = false
+
+
   }
 
   async ngAfterViewInit() {
-    await this.setupDevices();
+    await this.getPermissions()
+    this.onCamerasFound()
   }
 
-  //CAMERA
-  async setupDevices() {
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true
+  openCamera() {
+    this.isCameraOpen = true
+    this.isGalleryOpen = false
+  }
+  openGallery() {
+    this.isGalleryOpen = true
+    this.isCameraOpen = false
+  }
+
+  onHasPermission(has: boolean) {
+    this.hasPermission = has;
+  }
+
+  async getPermissions() {
+    await navigator.mediaDevices.getUserMedia({ video: true })
+      .then(success => this.onHasPermission(true))
+      .catch(err => this.onHasPermission(false))
+  }
+
+  onCamerasFound() {
+    if (this.hasPermission && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.enumerateDevices()
+        .then((devices) => {
+          devices.forEach((device) => {
+            if (String(device.kind) === 'videoinput') {
+              this.availableDevices.push(device);
+            }
+          })
+          this.hasDevices = Boolean(devices && devices.length);
+        })
+        .catch((err) => {
+          console.error(`${err.name}: ${err.message}`);
         });
+    }
+
+  }
+
+  async onDeviceSelectChange(selected: string) {
+    const selectedStr = selected || '';
+    if (this.deviceSelected === selectedStr) { return; }
+    this.deviceSelected = selectedStr;
+    const device = this.availableDevices.find(x => x.deviceId === selected);
+    this.deviceCurrent = device || this.emptyDevice;
+    if (selected != '') {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: this.deviceCurrent.deviceId } })
         if (stream) {
           this.video.nativeElement.srcObject = stream;
           this.video.nativeElement.play();
           this.error = null;
         } else {
+          this.video.nativeElement.srcObject = null;
+          this.video.nativeElement.stop();
           this.error = "You have no output video device";
         }
       } catch (e) {
         this.error = e;
       }
+    } else {
+      this.video.nativeElement.srcObject = null;
+      this.error = null;
+    }
+
+  }
+
+  dropFile(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.dataTransfer.files.item(0)) {
+      const file = event.dataTransfer.files.item(0);
+      if (this.isImage(file)) {
+        this.loadFile(file);
+      } else {
+        this.overZone = false;
+      }
     }
   }
+
 
   capture() {
     this.drawImageToCanvas(this.video.nativeElement);
@@ -91,6 +178,7 @@ export class AppComponent implements AfterViewInit {
     var file = this.dataURLtoFile(imageUrl, `${filename}.png`)
     this.loadFile(file)
     this.isCaptured = true;
+    this.isCameraOpen = false;
   }
 
   dataURLtoFile(dataUrl, filename) {
@@ -141,6 +229,10 @@ export class AppComponent implements AfterViewInit {
     console.log(message);
     this.image = null;
     this.isCaptured = false;
+    this.isCameraOpen = false;
+    this.isGalleryOpen = false;
+    this.deviceCurrent = this.emptyDevice
+    this.deviceSelected =  this.deviceCurrent.deviceId
   }
 
   editResult(result: Blob) {
@@ -165,7 +257,7 @@ export class AppComponent implements AfterViewInit {
     img.style.margin = '5px'
     divImages.appendChild(img)
 
-    
+
     const backBtn = <HTMLButtonElement>document.querySelector('button[name="back"]')
     backBtn.click()
     const exitBtn = <HTMLButtonElement>document.querySelector('button[name="exit"]')
@@ -194,7 +286,7 @@ export class AppComponent implements AfterViewInit {
       img.src = String(this.captures[i].url);
       img.onload = function () {
         const imgWidth = 640//this.WIDTH;
-        const imgHeight =480 //this.HEIGHT;
+        const imgHeight = 480 //this.HEIGHT;
         const imgRatio = imgWidth / imgHeight;
         if (i > 0) { pdf.addPage(); }
         pdf.setPage(i + 1);
@@ -221,7 +313,9 @@ export class AppComponent implements AfterViewInit {
           }
         }
         if (i == urls.length - 1) {
-          pdf.save('Photo.pdf');
+          let date = new Date().toLocaleTimeString()
+          let filename: string = `${date.split(':')[0]}${date.split(':')[1]}${date.split(':')[2]}`      
+          pdf.save(`${filename}.pdf`);
         }
       }
 
@@ -233,15 +327,15 @@ export class AppComponent implements AfterViewInit {
 
   }
 
-  getBase64Image(img) {
-    var canvas = document.createElement('canvas');
-    console.log(img.width, 'x', img.height);
-    canvas.width = 446;
-    canvas.height = 631;
-    var ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-    var dataURL = canvas.toDataURL('image/png', 1.0);
-    return { img: dataURL, width: (canvas.width), height: (canvas.height) };
-  }
+  // getBase64Image(img) {
+  //   var canvas = document.createElement('canvas');
+  //   console.log(img.width, 'x', img.height);
+  //   canvas.width = 446;
+  //   canvas.height = 631;
+  //   var ctx = canvas.getContext('2d');
+  //   ctx.drawImage(img, 0, 0);
+  //   var dataURL = canvas.toDataURL('image/png', 1.0);
+  //   return { img: dataURL, width: (canvas.width), height: (canvas.height) };
+  // }
 
 }
