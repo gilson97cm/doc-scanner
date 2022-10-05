@@ -45,6 +45,14 @@ export class AppComponent implements AfterViewInit {
 
   isCameraOpen: boolean
   isGalleryOpen: boolean
+  doneCrop: boolean;
+
+  EXIT: string
+  ROTATE: string
+  DONE_CROP: string
+  BACK: string
+  FILTER: string
+  UPLOAD: string
 
   constructor() {
     this.availableDevices = []
@@ -60,9 +68,9 @@ export class AppComponent implements AfterViewInit {
 
     this.captures = [];
     this.config = {
-      editorBackgroundColor: '#fafafa',
+      editorBackgroundColor: '#fefefe',
       buttonThemeColor: 'primary',
-      cropToolColor: '#ff4081',
+      cropToolColor: '#0D94EA',
       cropToolShape: 'rect',
       cropToolDimensions: {
         width: 16,
@@ -71,19 +79,31 @@ export class AppComponent implements AfterViewInit {
       exportImageIcon: 'save',
       editorDimensions: {
         width: '99vw',
-        height: '82vh'
+        height: 'auto' //'82vh'
       },
       extraCss: {
-        position: 'absolute',
+        position: 'flex',
         top: 0,
-        left: 0
+        left: 0,
+
       }
     };
 
     this.isCameraOpen = false
     this.isGalleryOpen = false
+    this.doneCrop = false
 
+    this.EXIT = 'exit'
+    this.ROTATE = 'rotate'
+    this.DONE_CROP = 'done_crop'
 
+    this.BACK = 'back'
+    this.FILTER = 'filter'
+    this.UPLOAD = 'upload'
+
+  }
+
+  onInit() {
   }
 
   async ngAfterViewInit() {
@@ -179,7 +199,40 @@ export class AppComponent implements AfterViewInit {
     this.loadFile(file)
     this.isCaptured = true;
     this.isCameraOpen = false;
+    // this.setStyles()
   }
+
+  // setStyles() {
+  //   setTimeout(() => {
+  //     const btnExit = <HTMLButtonElement>document.querySelector('button[name="exit"]')
+  //     btnExit.className = ''
+  //     btnExit.innerHTML = ''
+  //     btnExit.classList.add('general-button')
+
+  //     const arrowIcon = <HTMLLIElement>document.createElement('i')
+  //     arrowIcon.classList.add('fa','fa-arrow-left','fa-2x')
+  //     btnExit.appendChild(arrowIcon)
+
+  //     const btnRotate = <HTMLButtonElement>document.querySelector('button[name="rotate"]')
+  //     btnRotate.className = ''
+  //     btnRotate.innerHTML = ''
+  //     btnRotate.classList.add('general-button')
+
+  //     const rotateRight = <HTMLLIElement>document.createElement('i')
+  //     rotateRight.classList.add('fa','fa-rotate-right','fa-2x')
+  //     btnRotate.appendChild(rotateRight)
+
+  //     const btnDoneCrop = <HTMLButtonElement>document.querySelector('button[name="done_crop"]')
+  //     btnDoneCrop.className = ''
+  //     btnDoneCrop.innerHTML = ''
+  //     btnDoneCrop.classList.add('general-button')
+
+  //     const check = <HTMLLIElement>document.createElement('i')
+  //     check.classList.add('fa','fa-check','fa-2x')
+  //     btnDoneCrop.appendChild(check)
+
+  //   }, 500);
+  // }
 
   dataURLtoFile(dataUrl, filename) {
     var arr = dataUrl.split(','),
@@ -232,10 +285,11 @@ export class AppComponent implements AfterViewInit {
     this.isCameraOpen = false;
     this.isGalleryOpen = false;
     this.deviceCurrent = this.emptyDevice
-    this.deviceSelected =  this.deviceCurrent.deviceId
+    this.deviceSelected = this.deviceCurrent.deviceId
   }
 
   editResult(result: Blob) {
+    // this.setStyles()
     let date = new Date().toLocaleTimeString()
     let filename: string = `${date.split(':')[0]}${date.split(':')[1]}${date.split(':')[2]}`
 
@@ -263,6 +317,7 @@ export class AppComponent implements AfterViewInit {
     const exitBtn = <HTMLButtonElement>document.querySelector('button[name="exit"]')
     exitBtn.click()
     this.exitEditor()
+
   }
 
   onError(err: Error) {
@@ -314,7 +369,7 @@ export class AppComponent implements AfterViewInit {
         }
         if (i == urls.length - 1) {
           let date = new Date().toLocaleTimeString()
-          let filename: string = `${date.split(':')[0]}${date.split(':')[1]}${date.split(':')[2]}`      
+          let filename: string = `${date.split(':')[0]}${date.split(':')[1]}${date.split(':')[2]}`
           pdf.save(`${filename}.pdf`);
         }
       }
@@ -326,6 +381,29 @@ export class AppComponent implements AfterViewInit {
 
 
   }
+
+  actionClick(nameButton: string) {
+    const button = <HTMLButtonElement>document.querySelector(`button[name="${nameButton}"]`)
+    button.click()
+
+    nameButton == this.DONE_CROP && (this.doneCrop = true);
+    nameButton == this.ROTATE && (this.doneCrop = false);
+    nameButton == this.BACK && (this.doneCrop = false);
+    nameButton == this.UPLOAD && (this.doneCrop = false);
+
+  }
+  // exitClick() {
+  //   const btnExit = <HTMLButtonElement>document.querySelector('button[name="exit"]')
+  //   btnExit.click()
+  // }
+  // rotateClick() {
+  //   const btnRotate = <HTMLButtonElement>document.querySelector('button[name="rotate"]')
+  //   btnRotate.click()
+  // }
+  // doneCropClick() {
+  //   const btnDoneCrop = <HTMLButtonElement>document.querySelector('button[name="done_crop"]')
+  //   btnDoneCrop.click()
+  // }
 
   // getBase64Image(img) {
   //   var canvas = document.createElement('canvas');

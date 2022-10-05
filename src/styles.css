@@ -1,8 +1,13 @@
-/* You can add global styles to this file, and also import other style files */
-/* @import url('./css/bootstrap.min.css'); */
-/* @import url('./css/layout.css');
-@import url('./css/accordion-custom.css');
-@import url('./css/tab-custom.css');
-@import url('./css/style.css');
-@import url('./css/helper-class.css');
-@import url('./css/input-elements.css'); */
+@import url("./css/font-awesome.css");
+@import url("./css/eqstyle.css");
+
+
+button[name="exit"],
+button[name="rotate"],
+button[name="done_crop"],
+button[name="back"],
+button[name="filter"],
+button[name="upload"]
+{
+  display: none;
+}

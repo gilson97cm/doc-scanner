@@ -1,28 +1,33 @@
 
 
-<div class="container m-2">
+<div class="marg-top10">
   <div class="form-group">
-    <button class="btn btn-primary" (click)="openCamera()" [disabled]="isCameraOpen">Camera</button>
-    <button class="btn btn-info ml-2" (click)="openGallery()" [disabled]="isGalleryOpen">Gallery</button>
-    <button class="btn btn-danger ml-2" (click)="downloadPdf()" [disabled]="captures.length <= 0" >Finish: {{ captures.length }}</button>
+    <button class="text-button text-uppercase" (click)="openCamera()" [disabled]="isCameraOpen">Camera</button>
+    <button class="text-button marg-left-butt10 text-uppercase" (click)="openGallery()" [disabled]="isGalleryOpen">Gallery</button>
+    <button class="text-button marg-left-butt10 red text-uppercase ng-scope" (click)="downloadPdf()" [disabled]="captures.length <= 0" >Create PDF with {{ captures.length }} images</button>
   </div>
 </div>
 
 
-<div class="container m-2" *ngIf="isCameraOpen">
+<div class="marg-left10" *ngIf="isCameraOpen">
   <div [hidden]="!hasDevices">
-    <div class="row">
-      <div class="form-group col-md-6">
-        <label for="cameras">Camera</label>
-        <select id="cameras" class="form-control" [value]="deviceSelected" (change)="onDeviceSelectChange($event.target.value)">
-          <option value="">No Device Selected</option>
-          <option *ngFor="let device of availableDevices" [value]="device.deviceId">{{device.label}}</option>
-        </select>
-        <span class="text-danger" *ngIf=" deviceCurrent.deviceId === '' ">Select a camera.</span>
+    <div class="fl-grid-item-row">
+      <div class="fl-grid-item fl-item-half">
+        <label for="cameras" class="fl-grid-item-label ng-binding">Camera</label>
+        <div class="fl-grid-field-wrapper">
+          <div class="fl-grid-field">
+            <select id="cameras" class="eq-validation-object ng-pristine ng-valid ng-valid-required ng-touched" [value]="deviceSelected" (change)="onDeviceSelectChange($event.target.value)">
+              <option value="">No Device Selected</option>
+              <option *ngFor="let device of availableDevices" [value]="device.deviceId">{{device.label}}</option>
+            </select>
+          </div>
+        </div>
+        <!-- <span class="text-danger" *ngIf=" deviceCurrent.deviceId === '' ">Select a camera.</span> -->
       </div>
     </div>
-    <div class="row">
-     <div class="col-md-12">
+
+    <div class="fl-grid-item-row">
+     <div class="fl-grid-item fl-item-half">
      
       <div  *ngIf=" deviceCurrent.deviceId != '' ">
         <video
@@ -44,9 +49,9 @@
           [height]="HEIGHT"
         ></canvas>
 
-        <div class="form-group" *ngIf="!isCaptured" >
-          <button class="btn btn-primary" (click)="capture()">
-            Snap Photo
+        <div class="toolbar-flex marg-top-10" *ngIf="!isCaptured" >
+          <button class="text-button marg-top10 text-uppercase" (click)="capture()">
+           <i class="fa fa-camera fa-2x"></i>&nbsp;Snap Photo
           </button>
         </div>
       </div>
@@ -77,9 +82,8 @@
   
 </div>
 
-<div class="container m-2">
-  <div class="video-container">
-  
+<div class="fl-grid-item-row">
+  <div class="fl-grid-item fl-item-half">
     <ngx-doc-scanner 
     id="scanner"
     *ngIf="image"
@@ -89,10 +93,23 @@
     (error)="onError($event)"
     (processing)="editorState($event)"
     [config]="config">
-  
   </ngx-doc-scanner>
   </div>
 </div>
+<div class="fl-grid-item-row fl-item-wrapper " *ngIf="image">
+  <button class="text-button" (click)="actionClick(!doneCrop ? EXIT : BACK)">
+    <i class="fa fa-arrow-left fa-2x"></i>&nbsp;{{ !doneCrop ? 'Exit' : 'Back' }}
+  </button>
+  <button class="text-button marg-left10" (click)="actionClick(!doneCrop ? ROTATE : FILTER )">
+    <i class="fa fa-{{ !doneCrop ? 'rotate-right' : 'image'}} fa-2x"></i>&nbsp;{{ !doneCrop ? 'Rotate Right' : 'Filter' }}
+  </button>
+  <button class="text-button marg-left10 {{ doneCrop && 'green' }}" (click)="actionClick(!doneCrop ? DONE_CROP : UPLOAD)">
+    <i class="fa fa-{{ !doneCrop ? 'crop':'check' }} fa-2x"></i>&nbsp;{{ !doneCrop ? 'Crop' : 'Save' }}
+  </button>
+</div>
+
+
+
 
 <div class="container m-4">
   <div class="container mt-4 text-center" id="images">
