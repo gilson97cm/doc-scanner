@@ -785,6 +785,18 @@ class NgxFilterMenuComponent {
         this.data = data;
         this.filterOptions = [
             {
+                name: 'original',
+                icon: 'crop_original',
+                action: (/**
+                 * @param {?} filter
+                 * @return {?}
+                 */
+                (filter) => {
+                    this.filterSelected.emit(filter);
+                }),
+                text: 'Original'
+            },
+            {
                 name: 'default',
                 icon: 'filter_b_and_w',
                 action: (/**
@@ -832,18 +844,7 @@ class NgxFilterMenuComponent {
                 }),
                 text: 'Magic Color'
             },
-            {
-                name: 'original',
-                icon: 'crop_original',
-                action: (/**
-                 * @param {?} filter
-                 * @return {?}
-                 */
-                (filter) => {
-                    this.filterSelected.emit(filter);
-                }),
-                text: 'Original'
-            },
+           
         ];
         this.filterSelected = new EventEmitter();
     }
@@ -1195,7 +1196,7 @@ class NgxDocScannerComponent {
         /**
          * filter selected by the user, returned by the filter selector bottom sheet
          */
-        this.selectedFilter = 'default';
+        this.selectedFilter = 'original';
         /**
          * image dimensions
          */

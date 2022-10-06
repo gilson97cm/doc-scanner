@@ -1,3 +1,33 @@
+ .img-captures{
+  height: auto;
+  width: 150px;
+  margin: 5px
+}
+.img-captures:hover{
+  cursor: pointer;
+  
+}
+.container-captures{
+  display: flex;
+  justify-content: space-between;
+}
+.span-captures{
+  display: flex;
+  position: relative;
+  font-size: 20px;
+}
+figcaption {
+  display:none; 
+  transition: all .5s;
+}
+/* Visible texto */
+figure:hover > span > figcaption {
+  display:block;
+  transition: all .5s;
+}
+.text-edit{
+  font-size:15px
+}
 /* @import url('../css/bootstrap.min.css');
 @import url('../css/layout.css');
 @import url('../css/accordion-custom.css');

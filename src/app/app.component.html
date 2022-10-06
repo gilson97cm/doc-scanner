@@ -66,7 +66,7 @@
 <div class="container m-2" *ngIf="isGalleryOpen">
   <div fxFlex="100" fxLayoutAlign="space-around" >
     <div #dropZone
-         class="dropZone"
+         class=" resource-planner-item-content ui-draggable-dragging "
          [ngClass]="{'drop-hover': overZone}"
          (drop)="$event.preventDefault(); dropFile($event)"
          (dragleave)="$event.preventDefault(); overZone = false;"
@@ -111,7 +111,15 @@
 
 
 
-<div class="container m-4">
-  <div class="container mt-4 text-center" id="images">
+<div class="fl-grid-item-row ">
+  <div *ngFor="let capture of captures; index as i"  class="container-captures" >
+    <figure>
+      <img [src]="capture.safeUrl" alt="" [id]="capture.id" class="img-captures" (click)="editImage(capture)">
+      <span class="span-captures">{{ i+1 }}/{{ captures.length }}<figcaption class="text-edit">&nbsp;Click to Edit</figcaption> </span>
+     
+    </figure>
   </div>
 </div>
+
+
+<!-- <img [src]="urlOriginal" alt=""> -->
