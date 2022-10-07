@@ -13,40 +13,46 @@ import { async } from 'rxjs/internal/scheduler/async';
 })
 
 export class AppComponent implements AfterViewInit {
-
-  deviceSelected: string;
-  availableDevices: MediaDeviceInfo[];
-  devicesList: MediaDeviceInfo[];
-  deviceCurrent: MediaDeviceInfo;
-  hasDevices: boolean;
-  hasPermission: boolean;
-  emptyDevice: MediaDeviceInfo;
-
-
-  // // CAMERA
-  WIDTH = 640;
-  HEIGHT = 480;
-
   @ViewChild("video")
   public video: ElementRef;
 
   @ViewChild("canvas")
   public canvas: ElementRef;
 
-  captureModel: Capture
+  isEnabledButton: boolean
+  isCameraOpen: boolean
+  isGalleryOpen: boolean
+  isEnabledCancel: boolean
+  isEditing: boolean = false
+
   captures: Capture[];
-  error: string;
+
+  hasDevices: boolean;
+  emptyDevice: MediaDeviceInfo;
+  deviceCurrent: MediaDeviceInfo;
+
   isCaptured: boolean;
 
-  // //CROP
+  WIDTH: number;
+  HEIGHT: number;
+
+  hasPermission: boolean;
+  error: string;
+
+  deviceSelected: string;
+  availableDevices: MediaDeviceInfo[];
+
+  urlOriginal: string
+  imageFull: string
   overZone = false;
   image: File;
   processing: boolean;
-  test: boolean;
+
   config: DocScannerConfig;
 
-  isCameraOpen: boolean
-  isGalleryOpen: boolean
+  captureEditing: Capture
+  captureModel: Capture
+
   doneCrop: boolean;
 
   EXIT: string
@@ -55,12 +61,21 @@ export class AppComponent implements AfterViewInit {
   BACK: string
   FILTER: string
   UPLOAD: string
-  urlOriginal: string
-  captureEditing: Capture
+
+  // devicesList: MediaDeviceInfo[];
+
+  // // //CROP
+  // test: boolean;
+
+  capturesTemp: Capture[] = []
 
   constructor(private sanitizer_: DomSanitizer) {
-    this.availableDevices = []
-    this.isCaptured = false;
+    this.isEnabledButton = false
+    this.isCameraOpen = false
+    this.isGalleryOpen = false
+    this.isEnabledCancel = true
+    this.captures = [];
+
     this.emptyDevice = {
       deviceId: '',
       groupId: '',
@@ -69,8 +84,14 @@ export class AppComponent implements AfterViewInit {
       toJSON: null
     }
     this.deviceCurrent = this.emptyDevice
+    this.isCaptured = false;
 
-    this.captures = [];
+
+    this.WIDTH = 640;
+    this.HEIGHT = 480;
+
+    this.availableDevices = []
+
     this.config = {
       editorBackgroundColor: '#fefefe',
       buttonThemeColor: 'primary',
@@ -93,8 +114,9 @@ export class AppComponent implements AfterViewInit {
       }
     };
 
-    this.isCameraOpen = false
-    this.isGalleryOpen = false
+    this.urlOriginal = ''
+    this.captureEditing = null
+
     this.doneCrop = false
 
     this.EXIT = 'exit'
@@ -104,8 +126,6 @@ export class AppComponent implements AfterViewInit {
     this.BACK = 'back'
     this.FILTER = 'filter'
     this.UPLOAD = 'upload'
-    this.urlOriginal = ''
-    this.captureEditing = null
 
   }
 
@@ -118,22 +138,34 @@ export class AppComponent implements AfterViewInit {
   }
 
   openCamera() {
+    this.isEnabledButton = true
     this.isCameraOpen = true
     this.isGalleryOpen = false
+    this.isEnabledCancel = false
   }
   openGallery() {
+    this.isEnabledButton = true
     this.isGalleryOpen = true
     this.isCameraOpen = false
+    this.isEnabledCancel = false
   }
-
-  onHasPermission(has: boolean) {
-    this.hasPermission = has;
+  async onCancel() {
+    this.isGalleryOpen = false
+    this.isCameraOpen = false
+    this.isEnabledCancel = true
+    this.isEditing = false
+    this.isEnabledButton = false
+    await this.onDeviceSelectChange('')
   }
 
   async getPermissions() {
     await navigator.mediaDevices.getUserMedia({ video: true })
       .then(success => this.onHasPermission(true))
       .catch(err => this.onHasPermission(false))
+  }
+
+  onHasPermission(has: boolean) {
+    this.hasPermission = has;
   }
 
   onCamerasFound() {
@@ -182,35 +214,33 @@ export class AppComponent implements AfterViewInit {
 
   }
 
- async dropFile(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    if (event.dataTransfer.files.item(0)) {
-      const file = event.dataTransfer.files.item(0);
-      if (this.isImage(file)) {
-        let imageBase64 = await this.blobToBase64(URL.createObjectURL(file))
-        this.urlOriginal = String(imageBase64);
-        this.loadFile(file);
-      } else {
-        this.overZone = false;
-      }
-    }
-  }
-
   capture() {
     this.drawImageToCanvas(this.video.nativeElement);
     let imageBase64 = this.canvas.nativeElement.toDataURL("image/png")
-    // this.urlOriginal =  URL.createObjectURL(this.convertBase64ToBlob(imageBase64))
-    this.urlOriginal = imageBase64;
-    let date = new Date().toLocaleTimeString()
-    let filename: string = `${date.split(':')[0]}${date.split(':')[1]}${date.split(':')[2]}`
-    let file = this.dataURLtoFile(imageBase64, `${filename}.png`)
-    this.loadFile(file)
-    this.isCaptured = true;
-    this.isCameraOpen = false;
+    this.urlOriginal = URL.createObjectURL(this.convertBase64ToBlob(imageBase64))
+    // this.urlOriginal = imageBase64;
+    let date = new Date().getTime()
+    let filename: string = String(date)
+    this.captureModel = {
+      id: filename,
+      urlCrop: this.urlOriginal,// URL.createObjectURL(result),
+      safeUrl: this.sanitizer_.bypassSecurityTrustUrl(this.urlOriginal),
+      imageFull: imageBase64
+    }
+    this.captures.push(this.captureModel);
+    // console.log("🚀 ~ file: app.component.ts ~ line 223 ~ AppComponent ~ capture ~ this.captures", this.captures)
+    // let file = this.dataURLtoFile(imageBase64, `${filename}.png`)
+    // this.loadFile(file)
+    // this.isCaptured = true;
+    // this.isCameraOpen = false;
 
   }
 
+  drawImageToCanvas(image) {
+    this.canvas.nativeElement
+      .getContext("2d")
+      .drawImage(image, 0, 0, this.WIDTH, this.HEIGHT);
+  }
 
   dataURLtoFile(dataUrl, filename) {
     var arr = dataUrl.split(','),
@@ -250,15 +280,8 @@ export class AppComponent implements AfterViewInit {
     }) !== -1;
   }
 
-  drawImageToCanvas(image) {
-    this.canvas.nativeElement
-      .getContext("2d")
-      .drawImage(image, 0, 0, this.WIDTH, this.HEIGHT);
-  }
-
 
   editResult(result: Blob) {
-    // this.setStyles()
     let date = new Date().toLocaleTimeString()
     let filename: string = `${date.split(':')[0]}${date.split(':')[1]}${date.split(':')[2]}`
 
@@ -266,23 +289,23 @@ export class AppComponent implements AfterViewInit {
     if (this.captureEditing == null) {
       this.captureModel = {
         id: filename,
-        url: URL.createObjectURL(result),
+        urlCrop: URL.createObjectURL(result),
         safeUrl: this.sanitizer_.bypassSecurityTrustUrl(URL.createObjectURL(result)),
         // urlOriginal:  this.sanitizer_.bypassSecurityTrustUrl(this.urlOriginal)
-        imageBase64: this.urlOriginal
+        imageFull: this.imageFull
       }
 
       this.captures.push(this.captureModel);
     } else {
       this.captures.forEach(capture => {
         if (capture.id == this.captureEditing.id) {
-          capture.url = URL.createObjectURL(result);
+          capture.urlCrop = URL.createObjectURL(result);
           capture.safeUrl = this.sanitizer_.bypassSecurityTrustUrl(URL.createObjectURL(result));
         }
       })
     }
 
-    console.log("🚀 ~ file: app.component.ts ~ line 266 ~ AppComponent ~ editResult ~ this.captureModel", this.captureModel)
+
     const backBtn = <HTMLButtonElement>document.querySelector('button[name="back"]')
     backBtn.click()
     const exitBtn = <HTMLButtonElement>document.querySelector('button[name="exit"]')
@@ -292,10 +315,10 @@ export class AppComponent implements AfterViewInit {
 
   editImage(capture: Capture) {
     this.captureEditing = capture
-    var file = this.dataURLtoFile(capture.imageBase64, `${capture.id}.png`)
+    var file = this.dataURLtoFile(capture.imageFull, `${capture.id}.png`)
     this.loadFile(file)
     this.isCaptured = true;
-    this.isCameraOpen = false;
+    this.isEditing = true;
   }
 
   exitEditor(message?) {
@@ -307,7 +330,11 @@ export class AppComponent implements AfterViewInit {
     this.deviceCurrent = this.emptyDevice
     this.deviceSelected = this.deviceCurrent.deviceId
     this.urlOriginal = ''
+    this.imageFull = ''
     this.captureEditing = null
+    this.isEditing = false;
+    this.isEnabledCancel = true;
+    this.isEnabledButton = false
   }
 
   onError(err: Error) {
@@ -320,26 +347,40 @@ export class AppComponent implements AfterViewInit {
 
   }
 
+  actionClick(nameButton: string) {
+    const button = <HTMLButtonElement>document.querySelector(`button[name="${nameButton}"]`)
+    button.click()
 
-  downloadPdf(urls = this.captures) {
+    nameButton == this.DONE_CROP && (this.doneCrop = true);
+    nameButton == this.ROTATE && (this.doneCrop = false);
+    nameButton == this.BACK && (this.doneCrop = false);
+    nameButton == this.UPLOAD && (this.doneCrop = false);
+
+  }
+
+  downloadPdf() {
+    // this.capturesTemp = urls
+    // console.log("🚀 ~ file: app.component.ts ~ line 349 ~ AppComponent ~ downloadPdf ~ urls", urls.length)
     let pdf = new jsPDF('l', 'mm', 'a4');
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
     const pageRatio = pageWidth / pageHeight;
-    const divImages = <HTMLDivElement>document.querySelector('#images')
+    // const divImages = <HTMLDivElement>document.querySelector('#images')
     for (let i = 0; i < this.captures.length; i++) {
       let img = new Image();
-      img.src = String(this.captures[i].url);
-      img.onload = function () {
+      setTimeout(() => {
+        img.src = String(this.captures[i].urlCrop);
+      }, 2000);
+      img.onload = async () => {
         const imgWidth = 640//this.WIDTH;
         const imgHeight = 480 //this.HEIGHT;
         const imgRatio = imgWidth / imgHeight;
-        if (i > 0) { pdf.addPage(); }
+        if (i > 0) { await pdf.addPage(); }
         pdf.setPage(i + 1);
         if (imgRatio >= 1) {
           const wc = imgWidth / pageWidth;
           if (imgRatio >= pageRatio) {
-            pdf.addImage(img, 'JPEG', 0, (pageHeight - imgHeight / wc) / 2, pageWidth, imgHeight / wc, null, 'NONE');
+            await pdf.addImage(img, 'JPEG', 0, (pageHeight - imgHeight / wc) / 2, pageWidth, imgHeight / wc, null, 'NONE');
           }
           else {
             const pi = pageRatio / imgRatio;
@@ -358,69 +399,53 @@ export class AppComponent implements AfterViewInit {
             pdf.addImage(img, 'JPEG', (pageWidth - imgHeight / wc) / 2, -(imgHeight / wc), pageHeight, imgHeight / wc, null, 'NONE', -90);
           }
         }
-        if (i == urls.length - 1) {
+
+        if (i == this.captures.length - 1) {
           let date = new Date().toLocaleTimeString()
           let filename: string = `${date.split(':')[0]}${date.split(':')[1]}${date.split(':')[2]}`
           pdf.save(`${filename}.pdf`);
         }
+
       }
-
     }
-
     this.captures = [];
-
-
   }
 
-  actionClick(nameButton: string) {
-    const button = <HTMLButtonElement>document.querySelector(`button[name="${nameButton}"]`)
-    button.click()
-
-    nameButton == this.DONE_CROP && (this.doneCrop = true);
-    nameButton == this.ROTATE && (this.doneCrop = false);
-    nameButton == this.BACK && (this.doneCrop = false);
-    nameButton == this.UPLOAD && (this.doneCrop = false);
-
+  async selectFile(event) {
+    this.isEditing = true
+    if (event.target.files.item(0)) {
+      const file = event.target.files.item(0);
+      if (this.isImage(file)) {
+        let imageBase64 = await this.blobToBase64(URL.createObjectURL(file))
+        this.imageFull = String(imageBase64);
+        this.loadFile(file);
+      } else {
+        this.overZone = false;
+      }
+    }
   }
-
   convertBase64ToBlob(base64Image: string) {
-    // Split into two parts
     const parts = base64Image.split(';base64,');
-
-    // Hold the content type
     const imageType = parts[0].split(':')[1];
-
-    // Decode Base64 string
     const decodedData = window.atob(parts[1]);
-
-    // Create UNIT8ARRAY of size same as row data length
     const uInt8Array = new Uint8Array(decodedData.length);
 
-    // Insert all character code into uInt8Array
     for (let i = 0; i < decodedData.length; ++i) {
       uInt8Array[i] = decodedData.charCodeAt(i);
     }
 
-    // Return BLOB image after conversion
     return new Blob([uInt8Array], { type: imageType });
   }
 
- async blobToBase64(url) {
+  async blobToBase64(url) {
     return new Promise(async (resolve, _) => {
-      // do a request to the blob uri
       const response = await fetch(url);
-
-      // response has a method called .blob() to get the blob file
       const blob = await response.blob();
-
-      // instantiate a file reader
       const fileReader = new FileReader();
 
-      // read the file
       fileReader.readAsDataURL(blob);
-
       fileReader.onloadend = function () {
-        resolve(fileReader.result); // Here is the base64 string
+        resolve(fileReader.result);
       }
     });
   };
