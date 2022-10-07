@@ -5,13 +5,13 @@
     <!--BUTTONS  -->
    <div class="form-row">
     <div class="form-item">
-      <button class="text-button  red text-uppercase ng-scope" (click)="onCancel()" 
+      <button class="text-button marg-left-butt10  marg-top10  red text-uppercase ng-scope" (click)="onCancel()" 
       [disabled]="isEnabledCancel">Cancel</button>
-      <button class="text-button marg-left-butt10 text-uppercase" (click)="openCamera()" 
+      <button class="text-button marg-left-butt10 marg-top10 text-uppercase" (click)="openCamera()" 
       [disabled]="isEnabledButton">Camera</button>
-      <button class="text-button marg-left-butt10 text-uppercase" (click)="openGallery()" 
+      <button class="text-button marg-left-butt10 marg-top10 text-uppercase" (click)="openGallery()" 
       [disabled]="isEnabledButton">Gallery</button>
-      <button class="text-button marg-left-butt10 green text-uppercase ng-scope" (click)="downloadPdf()" 
+      <button class="text-button marg-left-butt10 marg-top10 green text-uppercase ng-scope" (click)="downloadPdf()" 
       [disabled]="captures.length <= 0" >Create PDF with {{ captures.length }} images</button>
     </div>
   </div>
@@ -45,8 +45,8 @@
                 [class.hide]="isCaptured"
                 #video
                 id="video"
-                [width]="WIDTH"
-                [height]="HEIGHT"
+                width="100%"
+                height="100%"
                 autoplay
               ></video>
               <canvas
@@ -94,6 +94,13 @@
   <div class="form-row" >
     <div class="form-item">
       <div class="fl-grid-item-row">
+       <div class="form-row">
+        <div class="form-item">
+          <h2 class="marg-left10" *ngIf="captureEditing != null">Editing image {{ captureEditing.position }} of {{ captures.length }}</h2>
+        </div>
+       </div>
+      </div>
+      <div class="fl-grid-item-row">
         <div class="fl-grid-item fl-item-half">
           <ngx-doc-scanner 
           id="scanner"
@@ -125,7 +132,7 @@
  <!-- IMAGES LIST -->
     <div class="form-row ">
       <figure *ngFor="let capture of captures; index as i" class="form-item">
-        <img [src]="capture.safeUrl" alt="" [id]="capture.id" class="img-captures" (click)="editImage(capture)">
+        <img [class]="captureEditing?.id == capture.id && 'image-editing'" [src]="capture.safeUrl" alt="" [id]="capture.id" class="img-captures" (click)="editImage(capture)">
         <span class="span-captures">{{ i+1 }}/{{ captures.length }}<figcaption class="text-edit">&nbsp;Click to Edit</figcaption> </span>
       </figure>
     </div> 

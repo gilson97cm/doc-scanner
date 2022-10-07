@@ -155,6 +155,7 @@ export class AppComponent implements AfterViewInit {
     this.isEnabledCancel = true
     this.isEditing = false
     this.isEnabledButton = false
+    this.captureEditing = null
     await this.onDeviceSelectChange('')
   }
 
@@ -225,7 +226,8 @@ export class AppComponent implements AfterViewInit {
       id: filename,
       urlCrop: this.urlOriginal,// URL.createObjectURL(result),
       safeUrl: this.sanitizer_.bypassSecurityTrustUrl(this.urlOriginal),
-      imageFull: imageBase64
+      imageFull: imageBase64,
+      position: this.captures.length+1
     }
     this.captures.push(this.captureModel);
     // console.log("🚀 ~ file: app.component.ts ~ line 223 ~ AppComponent ~ capture ~ this.captures", this.captures)
@@ -292,7 +294,8 @@ export class AppComponent implements AfterViewInit {
         urlCrop: URL.createObjectURL(result),
         safeUrl: this.sanitizer_.bypassSecurityTrustUrl(URL.createObjectURL(result)),
         // urlOriginal:  this.sanitizer_.bypassSecurityTrustUrl(this.urlOriginal)
-        imageFull: this.imageFull
+        imageFull: this.imageFull,
+        position: this.capture.length+1
       }
 
       this.captures.push(this.captureModel);
@@ -359,17 +362,17 @@ export class AppComponent implements AfterViewInit {
   }
 
   downloadPdf() {
-    // this.capturesTemp = urls
+    this.capturesTemp = this.captures
     // console.log("🚀 ~ file: app.component.ts ~ line 349 ~ AppComponent ~ downloadPdf ~ urls", urls.length)
     let pdf = new jsPDF('l', 'mm', 'a4');
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
     const pageRatio = pageWidth / pageHeight;
     // const divImages = <HTMLDivElement>document.querySelector('#images')
-    for (let i = 0; i < this.captures.length; i++) {
+    for (let i = 0; i < this.capturesTemp.length; i++) {
       let img = new Image();
       setTimeout(() => {
-        img.src = String(this.captures[i].urlCrop);
+        img.src = String(this.capturesTemp[i].urlCrop);
       }, 2000);
       img.onload = async () => {
         const imgWidth = 640//this.WIDTH;
@@ -400,7 +403,7 @@ export class AppComponent implements AfterViewInit {
           }
         }
 
-        if (i == this.captures.length - 1) {
+        if (i == this.capturesTemp.length - 1) {
           let date = new Date().toLocaleTimeString()
           let filename: string = `${date.split(':')[0]}${date.split(':')[1]}${date.split(':')[2]}`
           pdf.save(`${filename}.pdf`);
@@ -408,7 +411,9 @@ export class AppComponent implements AfterViewInit {
 
       }
     }
-    this.captures = [];
+    // setTimeout(() => {
+      this.captures = [];
+    // }, 2000);
   }
 
   async selectFile(event) {

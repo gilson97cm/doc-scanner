@@ -28,6 +28,10 @@ figure:hover > span > figcaption {
 .text-edit{
   font-size:15px
 }
+
+.image-editing{
+  border: solid 5px #0D94EA;
+}
 /* @import url('../css/bootstrap.min.css');
 @import url('../css/layout.css');
 @import url('../css/accordion-custom.css');

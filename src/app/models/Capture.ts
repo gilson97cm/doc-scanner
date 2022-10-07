@@ -4,5 +4,6 @@ export class Capture {
     id: string;
     urlCrop: BlobPart;
     safeUrl: SafeUrl;
-    imageFull: string
+    imageFull: string;
+    position: number;
 }
