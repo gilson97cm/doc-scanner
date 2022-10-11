@@ -130,17 +130,50 @@
   <!-- END EDITOR -->
 
  <!-- IMAGES LIST -->
-    <div class="form-row ">
-      <figure *ngFor="let capture of captures; index as i" class="form-item">
-        <img [class]="captureEditing?.id == capture.id && 'image-editing'" [src]="capture.safeUrl" alt="" [id]="capture.id" class="img-captures" (click)="editImage(capture)">
-        <span class="span-captures">{{ i+1 }}/{{ captures.length }}<figcaption class="text-edit">&nbsp;Click to Edit</figcaption> </span>
+ <div *ngIf="captures.length > 0">
+    <!-- <h1>List Of Images</h1> -->
+    <button class="text-button  marg-top10  red" (click)="deleteAllImages()">
+      <i class="fa fa-trash fa-2x"></i>&nbsp;Delete All Images
+    </button>
+    <button class="text-button marg-left-butt10  marg-top10" (click)="downloadAllImages()">
+      <i class="fa fa-download fa-2x"></i>&nbsp;Download All Images
+    </button>
+    <div #dropListContainer class="form-row example-container " cdkDropListGroup  >
+      <figure cdkDropList
+              [cdkDropListData]="i"
+              *ngFor="let capture of captures; let i = index" 
+              class="form-item example-box">
+        <img 
+        cdkDrag
+        [cdkDragData]="i"
+        (cdkDragEntered)="dragEntered($event)"
+        (cdkDragMoved)="dragMoved($event)"
+        (cdkDragDropped)="dragDropped($event)"
+        [class]="captureEditing?.id == capture.id && 'image-editing'" 
+        [src]="capture.safeUrl" 
+        [id]="capture.id" 
+        alt="image" 
+        class="img-captures "> 
+        <span class="span-captures">{{ i+1 }}/{{ captures.length }} </span>
+        <div>
+          <button class="general-button  marg-top10  red" (click)="deleteImage(capture)">
+            <i class="fa fa-trash fa-2x"></i>
+          </button>
+          <button class="general-button marg-left-butt10  marg-top10" (click)="editImage(capture)">
+            <i class="fa fa-pencil fa-2x"></i>
+          </button>
+          <button class="general-button marg-left-butt10  marg-top10" (click)="downloadImage(capture)">
+            <i class="fa fa-download fa-2x"></i>
+          </button>
+        </div>
       </figure>
     </div> 
+ </div>
+   
 <!-- END IMAGES LIST -->
   </div>
-
- 
 </div>
+
 
 
 

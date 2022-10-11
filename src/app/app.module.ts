@@ -8,6 +8,8 @@ import { NgxDocumentScannerModule, OpenCVConfig } from 'src/lib/ngx-document-sca
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { CommonModule } from '@angular/common';
+import { DragDropModule } from '@angular/cdk/drag-drop';
+import { ReactiveFormsModule } from '@angular/forms';
 
 
 const openCvConfig: OpenCVConfig = {
@@ -25,7 +27,8 @@ const openCvConfig: OpenCVConfig = {
     MatProgressSpinnerModule,
     NgxDocumentScannerModule.forRoot(openCvConfig),
     BrowserAnimationsModule,
-    CommonModule
+    CommonModule,
+    DragDropModule
   ],
   providers: [],
   bootstrap: [AppComponent]

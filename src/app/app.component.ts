@@ -4,7 +4,7 @@ import { ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { Capture } from './models/Capture';
 import jsPDF from 'jspdf';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
-import { async } from 'rxjs/internal/scheduler/async';
+import { CdkDragDrop, CdkDragEnter, CdkDragMove, moveItemInArray } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-root',
@@ -13,11 +13,15 @@ import { async } from 'rxjs/internal/scheduler/async';
 })
 
 export class AppComponent implements AfterViewInit {
+  //#region VARIABLES
   @ViewChild("video")
   public video: ElementRef;
 
   @ViewChild("canvas")
   public canvas: ElementRef;
+
+  @ViewChild('dropListContainer') 
+  public dropListContainer: ElementRef;
 
   isEnabledButton: boolean
   isCameraOpen: boolean
@@ -62,12 +66,20 @@ export class AppComponent implements AfterViewInit {
   FILTER: string
   UPLOAD: string
 
-  // devicesList: MediaDeviceInfo[];
+  capturesTemp: Capture[]
 
-  // // //CROP
-  // test: boolean;
+  dropListReceiverElement?: HTMLElement;
+  dragDropInfo?: {
+    dragIndex: number;
+    dropIndex: number;
+  };
 
-  capturesTemp: Capture[] = []
+  //#endregion
+
+
+
+
+
 
   constructor(private sanitizer_: DomSanitizer) {
     this.isEnabledButton = false
@@ -127,6 +139,8 @@ export class AppComponent implements AfterViewInit {
     this.FILTER = 'filter'
     this.UPLOAD = 'upload'
 
+    this.capturesTemp = []
+
   }
 
   onInit() {
@@ -143,12 +157,14 @@ export class AppComponent implements AfterViewInit {
     this.isGalleryOpen = false
     this.isEnabledCancel = false
   }
+
   openGallery() {
     this.isEnabledButton = true
     this.isGalleryOpen = true
     this.isCameraOpen = false
     this.isEnabledCancel = false
   }
+
   async onCancel() {
     this.isGalleryOpen = false
     this.isCameraOpen = false
@@ -209,8 +225,13 @@ export class AppComponent implements AfterViewInit {
         this.error = e;
       }
     } else {
-      this.video.nativeElement.srcObject = null;
-      this.error = null;
+      try {
+        this.video.nativeElement.srcObject = null;
+        this.error = null;
+      } catch (error) {
+        this.error = error
+
+      }
     }
 
   }
@@ -227,14 +248,9 @@ export class AppComponent implements AfterViewInit {
       urlCrop: this.urlOriginal,// URL.createObjectURL(result),
       safeUrl: this.sanitizer_.bypassSecurityTrustUrl(this.urlOriginal),
       imageFull: imageBase64,
-      position: this.captures.length+1
+      position: this.captures.length + 1
     }
     this.captures.push(this.captureModel);
-    // console.log("🚀 ~ file: app.component.ts ~ line 223 ~ AppComponent ~ capture ~ this.captures", this.captures)
-    // let file = this.dataURLtoFile(imageBase64, `${filename}.png`)
-    // this.loadFile(file)
-    // this.isCaptured = true;
-    // this.isCameraOpen = false;
 
   }
 
@@ -282,7 +298,6 @@ export class AppComponent implements AfterViewInit {
     }) !== -1;
   }
 
-
   editResult(result: Blob) {
     let date = new Date().toLocaleTimeString()
     let filename: string = `${date.split(':')[0]}${date.split(':')[1]}${date.split(':')[2]}`
@@ -295,7 +310,7 @@ export class AppComponent implements AfterViewInit {
         safeUrl: this.sanitizer_.bypassSecurityTrustUrl(URL.createObjectURL(result)),
         // urlOriginal:  this.sanitizer_.bypassSecurityTrustUrl(this.urlOriginal)
         imageFull: this.imageFull,
-        position: this.capture.length+1
+        position: this.capture.length + 1
       }
 
       this.captures.push(this.captureModel);
@@ -322,6 +337,37 @@ export class AppComponent implements AfterViewInit {
     this.loadFile(file)
     this.isCaptured = true;
     this.isEditing = true;
+  }
+
+  deleteImage(capture: Capture) {
+    this.captures = this.captures.filter(x => x.id != capture.id)
+    this.captures.map((capture, index) => capture.position = index + 1)
+
+    if (this.captures.length <= 0 && this.captureEditing != null) {
+      this.exitEditor()
+    }
+  }
+
+  downloadImage(capture: Capture) {
+    const link = <HTMLAnchorElement> document.createElement('a');
+    link.href = String(capture.urlCrop)
+    link.setAttribute('download', `${capture.id}.jpeg`);
+    link.click();
+  }
+
+  deleteAllImages() {
+    this.captures = []
+    if (this.captureEditing != null)
+      this.exitEditor()
+  }
+
+  downloadAllImages() {
+    this.captures.forEach(capture=>{
+      const link = <HTMLAnchorElement> document.createElement('a');
+      link.href = String(capture.urlCrop)
+      link.setAttribute('download', `${capture.id}.jpeg`);
+      link.click();
+    })
   }
 
   exitEditor(message?) {
@@ -363,12 +409,10 @@ export class AppComponent implements AfterViewInit {
 
   downloadPdf() {
     this.capturesTemp = this.captures
-    // console.log("🚀 ~ file: app.component.ts ~ line 349 ~ AppComponent ~ downloadPdf ~ urls", urls.length)
     let pdf = new jsPDF('l', 'mm', 'a4');
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
     const pageRatio = pageWidth / pageHeight;
-    // const divImages = <HTMLDivElement>document.querySelector('#images')
     for (let i = 0; i < this.capturesTemp.length; i++) {
       let img = new Image();
       setTimeout(() => {
@@ -412,7 +456,7 @@ export class AppComponent implements AfterViewInit {
       }
     }
     // setTimeout(() => {
-      this.captures = [];
+    // this.captures = [];
     // }, 2000);
   }
 
@@ -429,6 +473,7 @@ export class AppComponent implements AfterViewInit {
       }
     }
   }
+
   convertBase64ToBlob(base64Image: string) {
     const parts = base64Image.split(';base64,');
     const imageType = parts[0].split(':')[1];
@@ -453,6 +498,61 @@ export class AppComponent implements AfterViewInit {
         resolve(fileReader.result);
       }
     });
-  };
+  }
+
+  //REORDER IMAGES
+
+  dragEntered(event: CdkDragEnter<number>) {
+    const drag = event.item;
+    const dropList = event.container;
+    const dragIndex = drag.data;
+    const dropIndex = dropList.data;
+
+    this.dragDropInfo = { dragIndex, dropIndex };
+    // console.log('dragEntered', { dragIndex, dropIndex });
+
+    const phContainer = dropList.element.nativeElement;
+    const phElement = phContainer.querySelector('.cdk-drag-placeholder');
+
+    if (phElement) {
+      phContainer.removeChild(phElement);
+      phContainer.parentElement?.insertBefore(phElement, phContainer);
+
+      moveItemInArray(this.captures, dragIndex, dropIndex);
+      this.captures.map((capture, index) => capture.position = index + 1)
+
+    }
+  }
+
+  dragMoved(event: CdkDragMove<number>) {
+    if (!this.dropListContainer || !this.dragDropInfo) return;
+
+    const placeholderElement =
+      this.dropListContainer.nativeElement.querySelector(
+        '.cdk-drag-placeholder'
+      );
+
+    const receiverElement =
+      this.dragDropInfo.dragIndex > this.dragDropInfo.dropIndex
+        ? placeholderElement?.nextElementSibling
+        : placeholderElement?.previousElementSibling;
+
+    if (!receiverElement) {
+      return;
+    }
+
+    receiverElement.style.display = 'none';
+    this.dropListReceiverElement = receiverElement;
+  }
+
+  dragDropped(event: CdkDragDrop<number>) {
+    if (!this.dropListReceiverElement) {
+      return;
+    }
+
+    this.dropListReceiverElement.style.removeProperty('display');
+    this.dropListReceiverElement = undefined;
+    this.dragDropInfo = undefined;
+  }
 
 }
