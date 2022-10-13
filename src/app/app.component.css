@@ -3,9 +3,9 @@
   width: 200px;
   margin: 5px;
 }
-.img-captures:hover {
+/* .img-captures:hover {
   cursor: pointer;
-}
+} */
 .container-captures {
   display: flex;
   justify-content: space-between;
@@ -113,3 +113,5 @@ button {
   display: flex;
   flex-direction: row;
 }
+
+

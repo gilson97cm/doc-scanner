@@ -20,7 +20,7 @@ export class AppComponent implements AfterViewInit {
   @ViewChild("canvas")
   public canvas: ElementRef;
 
-  @ViewChild('dropListContainer') 
+  @ViewChild('dropListContainer')
   public dropListContainer: ElementRef;
 
   isEnabledButton: boolean
@@ -44,6 +44,7 @@ export class AppComponent implements AfterViewInit {
   error: string;
 
   deviceSelected: string;
+  deviceSelectedTemp: string;
   availableDevices: MediaDeviceInfo[];
 
   urlOriginal: string
@@ -76,11 +77,6 @@ export class AppComponent implements AfterViewInit {
 
   //#endregion
 
-
-
-
-
-
   constructor(private sanitizer_: DomSanitizer) {
     this.isEnabledButton = false
     this.isCameraOpen = false
@@ -99,8 +95,8 @@ export class AppComponent implements AfterViewInit {
     this.isCaptured = false;
 
 
-    this.WIDTH = 640;
-    this.HEIGHT = 480;
+    this.WIDTH = 0//640;
+    this.HEIGHT =0// 480;
 
     this.availableDevices = []
 
@@ -110,13 +106,13 @@ export class AppComponent implements AfterViewInit {
       cropToolColor: '#0D94EA',
       cropToolShape: 'rect',
       cropToolDimensions: {
-        width: 16,
-        height: 16
+        width: 18,
+        height: 18
       },
       exportImageIcon: 'save',
       editorDimensions: {
         width: '99vw',
-        height: 'auto' //'82vh'
+        height: '82vh' //'82vh'
       },
       extraCss: {
         position: 'flex',
@@ -141,10 +137,11 @@ export class AppComponent implements AfterViewInit {
 
     this.capturesTemp = []
 
+    this.deviceSelected = ''
+    this.deviceSelectedTemp = ''
   }
 
-  onInit() {
-  }
+  onInit() { }
 
   async ngAfterViewInit() {
     await this.getPermissions()
@@ -172,11 +169,18 @@ export class AppComponent implements AfterViewInit {
     this.isEditing = false
     this.isEnabledButton = false
     this.captureEditing = null
+    this.deviceSelectedTemp = ''
+    this.deviceSelected = ''
+    this.deviceCurrent = this.emptyDevice
+    this.deviceSelected = this.deviceCurrent.deviceId
     await this.onDeviceSelectChange('')
   }
 
   async getPermissions() {
-    await navigator.mediaDevices.getUserMedia({ video: true })
+    await navigator.mediaDevices.getUserMedia({ video:{
+      width: { ideal: 1920},
+          height: {ideal: 1080 }
+    }})
       .then(success => this.onHasPermission(true))
       .catch(err => this.onHasPermission(false))
   }
@@ -204,6 +208,12 @@ export class AppComponent implements AfterViewInit {
   }
 
   async onDeviceSelectChange(selected: string) {
+
+    if (this.deviceSelected != '') {
+      this.deviceSelectedTemp = this.deviceSelected
+      this.deviceSelected = ''
+    }
+
     const selectedStr = selected || '';
     if (this.deviceSelected === selectedStr) { return; }
     this.deviceSelected = selectedStr;
@@ -211,7 +221,14 @@ export class AppComponent implements AfterViewInit {
     this.deviceCurrent = device || this.emptyDevice;
     if (selected != '') {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: this.deviceCurrent.deviceId } })
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { 
+          deviceId: this.deviceCurrent.deviceId,
+          width: { ideal: 1920},
+          height: {ideal: 1080 }
+        } })
+        let stream_settings = stream.getVideoTracks()[0].getSettings();
+        this.WIDTH = stream_settings.width
+        this.HEIGHT = stream_settings.height
         if (stream) {
           this.video.nativeElement.srcObject = stream;
           this.video.nativeElement.play();
@@ -243,21 +260,27 @@ export class AppComponent implements AfterViewInit {
     // this.urlOriginal = imageBase64;
     let date = new Date().getTime()
     let filename: string = String(date)
-    this.captureModel = {
-      id: filename,
-      urlCrop: this.urlOriginal,// URL.createObjectURL(result),
-      safeUrl: this.sanitizer_.bypassSecurityTrustUrl(this.urlOriginal),
-      imageFull: imageBase64,
-      position: this.captures.length + 1
-    }
-    this.captures.push(this.captureModel);
+    var file = this.dataURLtoFile(imageBase64, `${filename}.png`)
+    this.imageFull = imageBase64
+    // this.captureModel = {
+    //   id: filename,
+    //   urlCrop: this.urlOriginal,// URL.createObjectURL(result),
+    //   safeUrl: this.sanitizer_.bypassSecurityTrustUrl(this.urlOriginal),
+    //   imageFull: imageBase64,
+    //   position: this.captures.length + 1
+    // }
+    // this.captures.push(this.captureModel);
+
+    this.loadFile(file)
+    this.isCaptured = true;
+    this.isEditing = true;
 
   }
 
   drawImageToCanvas(image) {
     this.canvas.nativeElement
       .getContext("2d")
-      .drawImage(image, 0, 0, this.WIDTH, this.HEIGHT);
+      .drawImage(image, 0, 0);
   }
 
   dataURLtoFile(dataUrl, filename) {
@@ -349,7 +372,7 @@ export class AppComponent implements AfterViewInit {
   }
 
   downloadImage(capture: Capture) {
-    const link = <HTMLAnchorElement> document.createElement('a');
+    const link = <HTMLAnchorElement>document.createElement('a');
     link.href = String(capture.urlCrop)
     link.setAttribute('download', `${capture.id}.jpeg`);
     link.click();
@@ -362,28 +385,39 @@ export class AppComponent implements AfterViewInit {
   }
 
   downloadAllImages() {
-    this.captures.forEach(capture=>{
-      const link = <HTMLAnchorElement> document.createElement('a');
+    this.captures.forEach(capture => {
+      const link = <HTMLAnchorElement>document.createElement('a');
       link.href = String(capture.urlCrop)
       link.setAttribute('download', `${capture.id}.jpeg`);
       link.click();
     })
   }
 
-  exitEditor(message?) {
+  async exitEditor(message?) {
     console.log(message);
     this.image = null;
     this.isCaptured = false;
-    this.isCameraOpen = false;
-    this.isGalleryOpen = false;
-    this.deviceCurrent = this.emptyDevice
-    this.deviceSelected = this.deviceCurrent.deviceId
+    // this.isCameraOpen = false;
+    // this.deviceCurrent = this.emptyDevice
+    // this.deviceSelected = this.deviceCurrent.deviceId
     this.urlOriginal = ''
     this.imageFull = ''
     this.captureEditing = null
     this.isEditing = false;
-    this.isEnabledCancel = true;
-    this.isEnabledButton = false
+
+    // this.isGalleryOpen = false;
+    // this.isEnabledCancel = true;
+    // this.isEnabledButton = false
+
+    await this.onDeviceSelectChange('')
+
+    if (this.deviceSelectedTemp != '') {
+      await this.onDeviceSelectChange(this.deviceSelectedTemp)
+      this.deviceSelected = this.deviceSelectedTemp
+    } else {
+      this.deviceSelectedTemp = ''
+    }
+
   }
 
   onError(err: Error) {
@@ -397,6 +431,7 @@ export class AppComponent implements AfterViewInit {
   }
 
   actionClick(nameButton: string) {
+    console.log("🚀 ~ file: app.component.ts ~ line 434 ~ AppComponent ~ actionClick ~ nameButton", nameButton)
     const button = <HTMLButtonElement>document.querySelector(`button[name="${nameButton}"]`)
     button.click()
 
@@ -405,6 +440,17 @@ export class AppComponent implements AfterViewInit {
     nameButton == this.BACK && (this.doneCrop = false);
     nameButton == this.UPLOAD && (this.doneCrop = false);
 
+    if(nameButton == 'filter'){
+      const buttons:NodeListOf<HTMLButtonElement> = document.querySelectorAll('button[mat-list-item]')
+      buttons.forEach(btn => {
+        // const icon = <HTMLLIElement>document.createElement('i')
+        // icon.classList.add('fa fa-pencil fa-2x')
+        btn.innerHTML = ''
+        btn.classList.add('text-button')
+        // btn.appendChild(icon)
+      })
+      
+    }
   }
 
   downloadPdf() {

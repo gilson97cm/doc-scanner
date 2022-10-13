@@ -5,12 +5,13 @@
     <!--BUTTONS  -->
    <div class="form-row">
     <div class="form-item">
-      <button class="text-button marg-left-butt10  marg-top10  red text-uppercase ng-scope" (click)="onCancel()" 
-      [disabled]="isEnabledCancel">Cancel</button>
+ 
       <button class="text-button marg-left-butt10 marg-top10 text-uppercase" (click)="openCamera()" 
       [disabled]="isEnabledButton">Camera</button>
       <button class="text-button marg-left-butt10 marg-top10 text-uppercase" (click)="openGallery()" 
       [disabled]="isEnabledButton">Gallery</button>
+      <button class="text-button marg-left-butt10  marg-top10  red text-uppercase ng-scope" (click)="onCancel()" 
+      *ngIf="!isEnabledCancel">Cancel</button>
       <button class="text-button marg-left-butt10 marg-top10 green text-uppercase ng-scope" (click)="downloadPdf()" 
       [disabled]="captures.length <= 0" >Create PDF with {{ captures.length }} images</button>
     </div>
@@ -28,7 +29,7 @@
                   <div class="fl-grid-field">
                     <select id="cameras" class="eq-validation-object ng-pristine ng-valid ng-valid-required ng-touched" [value]="deviceSelected" (change)="onDeviceSelectChange($event.target.value)">
                       <option value="">No Device Selected</option>
-                      <option *ngFor="let device of availableDevices" [value]="device.deviceId">{{device.label}}</option>
+                      <option *ngFor="let device of availableDevices" [value]="device.deviceId" [selected] = "deviceSelected == '' && deviceSelectedTemp == device.deviceId">{{device.label }}</option>
                     </select>
                   </div>
                 </div>
@@ -61,7 +62,7 @@
               </div>
               <div class="form-item-last">
                 <button class="text-button marg-top10 text-uppercase" (click)="capture()">
-                 <i class="fa fa-camera fa-2x"></i>&nbsp;Snap Photo
+                 <i class="fa fa-camera fa-2x"></i>&nbsp;Take Photo
                 </button>
               </div>
              </div>
@@ -122,7 +123,7 @@
           <i class="fa fa-{{ !doneCrop ? 'rotate-right' : 'image'}} fa-2x"></i>&nbsp;{{ !doneCrop ? 'Rotate Right' : 'Filter' }}
         </button>
         <button class="text-button marg-left10 {{ doneCrop && 'green' }}" (click)="actionClick(!doneCrop ? DONE_CROP : UPLOAD)">
-          <i class="fa fa-{{ !doneCrop ? 'crop':'check' }} fa-2x"></i>&nbsp;{{ !doneCrop ? 'Crop' : 'Save' }}
+          <i class="fa fa-{{ !doneCrop ? 'check':'floppy-o' }} fa-2x"></i>&nbsp;{{ !doneCrop ? 'Done' : 'Save' }}
         </button>
       </div>
     </div>
