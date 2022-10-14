@@ -11,3 +11,9 @@ button[name="upload"]
 {
   display: none;
 }
+
+/* DISABLE REFRESH CHROME */
+body {
+  overscroll-behavior: contain;
+}
+/* END DISABLE REFRESH CHROME */

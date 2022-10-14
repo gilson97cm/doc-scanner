@@ -75,6 +75,7 @@ export class AppComponent implements AfterViewInit {
     dropIndex: number;
   };
 
+  buttonFilterId: string
   //#endregion
 
   constructor(private sanitizer_: DomSanitizer) {
@@ -96,7 +97,7 @@ export class AppComponent implements AfterViewInit {
 
 
     this.WIDTH = 0//640;
-    this.HEIGHT =0// 480;
+    this.HEIGHT = 0// 480;
 
     this.availableDevices = []
 
@@ -106,13 +107,14 @@ export class AppComponent implements AfterViewInit {
       cropToolColor: '#0D94EA',
       cropToolShape: 'rect',
       cropToolDimensions: {
-        width: 18,
-        height: 18
+        width: 20,
+        height: 20
       },
+      cropToolLineWeight: 5,
       exportImageIcon: 'save',
       editorDimensions: {
         width: '99vw',
-        height: '82vh' //'82vh'
+        height: 'auto'// '82vh'
       },
       extraCss: {
         position: 'flex',
@@ -139,9 +141,17 @@ export class AppComponent implements AfterViewInit {
 
     this.deviceSelected = ''
     this.deviceSelectedTemp = ''
+    this.buttonFilterId = 'filter_0'
   }
 
-  onInit() { }
+  onInit() {
+    window.addEventListener("beforeunload", function (e) {
+      var confirmationMessage = "\o/";
+      console.log("cond");
+      e.returnValue = confirmationMessage;     // Gecko, Trident, Chrome 34+
+      return confirmationMessage;              // Gecko, WebKit, Chrome <34
+    });
+  }
 
   async ngAfterViewInit() {
     await this.getPermissions()
@@ -177,10 +187,12 @@ export class AppComponent implements AfterViewInit {
   }
 
   async getPermissions() {
-    await navigator.mediaDevices.getUserMedia({ video:{
-      width: { ideal: 1920},
-          height: {ideal: 1080 }
-    }})
+    await navigator.mediaDevices.getUserMedia({
+      video: {
+        width: { ideal: 1920 },
+        height: { ideal: 1080 }
+      }
+    })
       .then(success => this.onHasPermission(true))
       .catch(err => this.onHasPermission(false))
   }
@@ -221,11 +233,13 @@ export class AppComponent implements AfterViewInit {
     this.deviceCurrent = device || this.emptyDevice;
     if (selected != '') {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { 
-          deviceId: this.deviceCurrent.deviceId,
-          width: { ideal: 1920},
-          height: {ideal: 1080 }
-        } })
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            deviceId: this.deviceCurrent.deviceId,
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          }
+        })
         let stream_settings = stream.getVideoTracks()[0].getSettings();
         this.WIDTH = stream_settings.width
         this.HEIGHT = stream_settings.height
@@ -409,6 +423,8 @@ export class AppComponent implements AfterViewInit {
     // this.isEnabledCancel = true;
     // this.isEnabledButton = false
 
+    this.buttonFilterId = 'filter_0'
+
     await this.onDeviceSelectChange('')
 
     if (this.deviceSelectedTemp != '') {
@@ -431,7 +447,6 @@ export class AppComponent implements AfterViewInit {
   }
 
   actionClick(nameButton: string) {
-    console.log("🚀 ~ file: app.component.ts ~ line 434 ~ AppComponent ~ actionClick ~ nameButton", nameButton)
     const button = <HTMLButtonElement>document.querySelector(`button[name="${nameButton}"]`)
     button.click()
 
@@ -440,17 +455,52 @@ export class AppComponent implements AfterViewInit {
     nameButton == this.BACK && (this.doneCrop = false);
     nameButton == this.UPLOAD && (this.doneCrop = false);
 
-    if(nameButton == 'filter'){
-      const buttons:NodeListOf<HTMLButtonElement> = document.querySelectorAll('button[mat-list-item]')
-      buttons.forEach(btn => {
-        // const icon = <HTMLLIElement>document.createElement('i')
-        // icon.classList.add('fa fa-pencil fa-2x')
-        btn.innerHTML = ''
-        btn.classList.add('text-button')
-        // btn.appendChild(icon)
+    this.onFilterClick(nameButton)
+  }
+
+  onFilterClick(nameButton: String) {
+    if (nameButton == 'filter') {
+      const buttons: NodeListOf<HTMLButtonElement> = document.querySelectorAll('button[mat-list-item]')
+      buttons.forEach((btn, index) => {
+        btn.setAttribute('id', `filter_${index}`)
+        btn.classList.add('general-button')
+        btn.innerHTML = `
+        <div class="mat-list-item-content" style="flex-direction: row; box-sizing: border-box; display: flex;">
+        <div mat-ripple="" class="mat-ripple mat-list-item-ripple"></div>
+        <div class="mat-list-text"></div>
+        <span fxflex="100" style="text-align: start; margin: 5px; flex: 1 1 100%; box-sizing: border-box; max-width: 100%;">
+         `+ this.setText(index) + `
+        </span>
+        <span fxflex="100" style="flex: 1 1 100%; box-sizing: border-box; max-width: 100%;"></span>
+        `+ this.setDone(`filter_${index}`) + `
+        </div>
+        `
+        btn.addEventListener('click', (e: any) => {
+          if (e.path.length == 13)
+            this.buttonFilterId = e.path[2].id
+          else
+            this.buttonFilterId = e.path[1].id
+        })
       })
-      
+
     }
+  }
+
+  setText(index): string {
+    if (index == 0)
+      return ' Original'
+    if (index == 1)
+      return ' B&W'
+    if (index == 2)
+      return ' B&W 2'
+    if (index == 3)
+      return ' B&W 3'
+    if (index == 4)
+      return 'Magic Color'
+  }
+
+  setDone(btnId): string {
+    return this.buttonFilterId == btnId ? '<i class="fa fa-check"></i>' : ''
   }
 
   downloadPdf() {

@@ -1,18 +1,16 @@
-
-
 <div class="marg-top10 panel-body">
   <div class="clearfix">
     <!--BUTTONS  -->
-   <div class="form-row">
+   <div class="form-row" >
     <div class="form-item">
  
       <button class="text-button marg-left-butt10 marg-top10 text-uppercase" (click)="openCamera()" 
       [disabled]="isEnabledButton">Camera</button>
       <button class="text-button marg-left-butt10 marg-top10 text-uppercase" (click)="openGallery()" 
       [disabled]="isEnabledButton">Gallery</button>
-      <button class="text-button marg-left-butt10  marg-top10  red text-uppercase ng-scope" (click)="onCancel()" 
+      <button class="text-button marg-left-butt10  marg-top10  red text-uppercase" (click)="onCancel()" 
       *ngIf="!isEnabledCancel">Cancel</button>
-      <button class="text-button marg-left-butt10 marg-top10 green text-uppercase ng-scope" (click)="downloadPdf()" 
+      <button class="text-button marg-left-butt10 marg-top10 green text-uppercase" (click)="downloadPdf()" 
       [disabled]="captures.length <= 0" >Create PDF with {{ captures.length }} images</button>
     </div>
   </div>
