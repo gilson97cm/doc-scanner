@@ -27,7 +27,7 @@
                   <div class="fl-grid-field">
                     <select id="cameras" class="eq-validation-object ng-pristine ng-valid ng-valid-required ng-touched" [value]="deviceSelected" (change)="onDeviceSelectChange($event.target.value)">
                       <option value="">No Device Selected</option>
-                      <option *ngFor="let device of availableDevices" [value]="device.deviceId" [selected] = "deviceSelected == '' && deviceSelectedTemp == device.deviceId">{{device.label }}</option>
+                      <option *ngFor="let device of availableDevices" [value]="device.deviceId" [selected] = "deviceSelectedTemp == device.deviceId">{{device.label }}</option>
                     </select>
                   </div>
                 </div>

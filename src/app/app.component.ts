@@ -221,13 +221,8 @@ export class AppComponent implements AfterViewInit {
 
   async onDeviceSelectChange(selected: string) {
 
-    if (this.deviceSelected != '') {
-      this.deviceSelectedTemp = this.deviceSelected
-      this.deviceSelected = ''
-    }
-
     const selectedStr = selected || '';
-    if (this.deviceSelected === selectedStr) { return; }
+    // if (this.deviceSelected === selectedStr) { return; }
     this.deviceSelected = selectedStr;
     const device = this.availableDevices.find(x => x.deviceId === selected);
     this.deviceCurrent = device || this.emptyDevice;
@@ -245,6 +240,7 @@ export class AppComponent implements AfterViewInit {
         this.HEIGHT = stream_settings.height
         if (stream) {
           this.video.nativeElement.srcObject = stream;
+          this.video.nativeElement.stop();
           this.video.nativeElement.play();
           this.error = null;
         } else {
@@ -255,9 +251,11 @@ export class AppComponent implements AfterViewInit {
       } catch (e) {
         this.error = e;
       }
+
     } else {
       try {
         this.video.nativeElement.srcObject = null;
+        this.video.nativeElement.stop();
         this.error = null;
       } catch (error) {
         this.error = error
@@ -268,6 +266,7 @@ export class AppComponent implements AfterViewInit {
   }
 
   capture() {
+    // this.video.nativeElement.pause();
     this.drawImageToCanvas(this.video.nativeElement);
     let imageBase64 = this.canvas.nativeElement.toDataURL("image/png")
     this.urlOriginal = URL.createObjectURL(this.convertBase64ToBlob(imageBase64))
@@ -276,15 +275,6 @@ export class AppComponent implements AfterViewInit {
     let filename: string = String(date)
     var file = this.dataURLtoFile(imageBase64, `${filename}.png`)
     this.imageFull = imageBase64
-    // this.captureModel = {
-    //   id: filename,
-    //   urlCrop: this.urlOriginal,// URL.createObjectURL(result),
-    //   safeUrl: this.sanitizer_.bypassSecurityTrustUrl(this.urlOriginal),
-    //   imageFull: imageBase64,
-    //   position: this.captures.length + 1
-    // }
-    // this.captures.push(this.captureModel);
-
     this.loadFile(file)
     this.isCaptured = true;
     this.isEditing = true;
@@ -347,7 +337,7 @@ export class AppComponent implements AfterViewInit {
         safeUrl: this.sanitizer_.bypassSecurityTrustUrl(URL.createObjectURL(result)),
         // urlOriginal:  this.sanitizer_.bypassSecurityTrustUrl(this.urlOriginal)
         imageFull: this.imageFull,
-        position: this.capture.length + 1
+        position: this.captures.length + 1
       }
 
       this.captures.push(this.captureModel);
@@ -399,16 +389,30 @@ export class AppComponent implements AfterViewInit {
   }
 
   downloadAllImages() {
-    this.captures.forEach(capture => {
+
+    for (let i = 0; i < this.captures.length; i++) {
+      console.log(`${this.captures[i].position}-${this.captures[i].urlCrop}`)
       const link = <HTMLAnchorElement>document.createElement('a');
-      link.href = String(capture.urlCrop)
-      link.setAttribute('download', `${capture.id}.jpeg`);
+      link.href = String(this.captures[i].urlCrop)
+      link.setAttribute('download', `${this.captures[i].position}-image.jpeg`);
       link.click();
-    })
+    }
+    console.log("🚀 this.captures", this.captures)
+
+  }
+
+
+  sliceIntoChunks(arr, chunkSize) {
+    const res = [];
+    for (let i = 0; i < arr.length; i += chunkSize) {
+      const chunk = arr.slice(i, i + chunkSize);
+      res.push(chunk);
+    }
+    return res;
   }
 
   async exitEditor(message?) {
-    console.log(message);
+    // console.log(message);
     this.image = null;
     this.isCaptured = false;
     // this.isCameraOpen = false;
@@ -425,13 +429,12 @@ export class AppComponent implements AfterViewInit {
 
     this.buttonFilterId = 'filter_0'
 
+    this.deviceSelectedTemp = this.deviceSelected
     await this.onDeviceSelectChange('')
 
     if (this.deviceSelectedTemp != '') {
       await this.onDeviceSelectChange(this.deviceSelectedTemp)
-      this.deviceSelected = this.deviceSelectedTemp
-    } else {
-      this.deviceSelectedTemp = ''
+      // this.deviceSelected = this.deviceSelectedTemp
     }
 
   }
