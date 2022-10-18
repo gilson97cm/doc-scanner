@@ -1,7 +1,7 @@
 <div class="marg-top10 panel-body">
   <div class="clearfix">
     <!--BUTTONS  -->
-   <div class="form-row" >
+   <div class="form-row">
     <div class="form-item">
  
       <button class="text-button marg-left-butt10 marg-top10 text-uppercase" (click)="openCamera()" 
@@ -90,7 +90,7 @@
     <!-- END GALLERY -->
 
   <!-- EDITOR -->
-  <div class="form-row" >
+  <div class="form-row no-scroll"  *ngIf="image && isEditing">
     <div class="form-item">
       <div class="fl-grid-item-row">
        <div class="form-row">
@@ -103,7 +103,6 @@
         <div class="fl-grid-item fl-item-half">
           <ngx-doc-scanner 
           id="scanner"
-          *ngIf="image && isEditing"
           [file]="image"
           (editResult)="editResult($event)"
           (exitEditor)="exitEditor()"
@@ -113,7 +112,7 @@
         </ngx-doc-scanner>
         </div>
       </div>
-      <div class="fl-grid-item-row fl-item-wrapper " *ngIf="image && isEditing">
+      <div class="fl-grid-item-row fl-item-wrapper " >
         <button class="text-button" (click)="actionClick(!doneCrop ? EXIT : BACK)">
           <i class="fa fa-arrow-left fa-2x"></i>&nbsp;{{ !doneCrop ? 'Exit' : 'Back' }}
         </button>
@@ -129,12 +128,12 @@
   <!-- END EDITOR -->
 
  <!-- IMAGES LIST -->
- <div *ngIf="captures.length > 0">
+ <div class="form-row" *ngIf="captures.length > 0 && !isEditing">
     <!-- <h1>List Of Images</h1> -->
     <button class="text-button  marg-top10  red" (click)="deleteAllImages()">
       <i class="fa fa-trash fa-2x"></i>&nbsp;Delete All Images
     </button>
-    <button class="text-button marg-left-butt10  marg-top10" (click)="downloadAllImages()">
+    <button class="text-button marg-left-butt10  marg-top10" (click)="downloadAllImages()" [disabled]="isDownloadAll">
       <i class="fa fa-download fa-2x"></i>&nbsp;Download All Images
     </button>
     <div #dropListContainer class="form-row example-container " cdkDropListGroup  >
@@ -172,6 +171,7 @@
 <!-- END IMAGES LIST -->
   </div>
 </div>
+
 
 
 

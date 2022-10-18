@@ -13,7 +13,12 @@ button[name="upload"]
 }
 
 /* DISABLE REFRESH CHROME */
+
 body {
+  /* height: auto;
+  position: fixed; */
   overscroll-behavior: contain;
+  overflow-x: hidden;
 }
+
 /* END DISABLE REFRESH CHROME */

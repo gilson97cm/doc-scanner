@@ -6,4 +6,6 @@ export class Capture {
     safeUrl: SafeUrl;
     imageFull: string;
     position: number;
+    widthCrop: number;
+    heightCrop:number;
 }

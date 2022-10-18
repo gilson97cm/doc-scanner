@@ -76,6 +76,7 @@ export class AppComponent implements AfterViewInit {
   };
 
   buttonFilterId: string
+  isDownloadAll: boolean
   //#endregion
 
   constructor(private sanitizer_: DomSanitizer) {
@@ -142,6 +143,7 @@ export class AppComponent implements AfterViewInit {
     this.deviceSelected = ''
     this.deviceSelectedTemp = ''
     this.buttonFilterId = 'filter_0'
+    this.isDownloadAll = false
   }
 
   onInit() {
@@ -326,30 +328,40 @@ export class AppComponent implements AfterViewInit {
   }
 
   editResult(result: Blob) {
+
     let date = new Date().toLocaleTimeString()
     let filename: string = `${date.split(':')[0]}${date.split(':')[1]}${date.split(':')[2]}`
+    const img = new Image()
+    let imgFull = this.imageFull
+    let captureEditing = this.captureEditing
+    img.onload = (event: any) => {
 
+      if (captureEditing == null) {
+        this.captureModel = {
+          id: filename,
+          urlCrop: URL.createObjectURL(result),
+          safeUrl: this.sanitizer_.bypassSecurityTrustUrl(URL.createObjectURL(result)),
+          // urlOriginal:  this.sanitizer_.bypassSecurityTrustUrl(this.urlOriginal)
+          imageFull: imgFull,// this.imageFull,
+          position: this.captures.length + 1,
+          widthCrop: event.path[0].naturalWidth,
+          heightCrop: event.path[0].naturalHeight
+        }
 
-    if (this.captureEditing == null) {
-      this.captureModel = {
-        id: filename,
-        urlCrop: URL.createObjectURL(result),
-        safeUrl: this.sanitizer_.bypassSecurityTrustUrl(URL.createObjectURL(result)),
-        // urlOriginal:  this.sanitizer_.bypassSecurityTrustUrl(this.urlOriginal)
-        imageFull: this.imageFull,
-        position: this.captures.length + 1
+        this.captures.push(this.captureModel);
+      } else {
+        this.captures.forEach(capture => {
+          if (capture.id == captureEditing.id) {
+            capture.urlCrop = URL.createObjectURL(result);
+            capture.safeUrl = this.sanitizer_.bypassSecurityTrustUrl(URL.createObjectURL(result));
+            capture.widthCrop = event.path[0].naturalWidth,
+              capture.heightCrop = event.path[0].naturalHeight
+          }
+        })
       }
 
-      this.captures.push(this.captureModel);
-    } else {
-      this.captures.forEach(capture => {
-        if (capture.id == this.captureEditing.id) {
-          capture.urlCrop = URL.createObjectURL(result);
-          capture.safeUrl = this.sanitizer_.bypassSecurityTrustUrl(URL.createObjectURL(result));
-        }
-      })
     }
-
+    img.src = URL.createObjectURL(result)
 
     const backBtn = <HTMLButtonElement>document.querySelector('button[name="back"]')
     backBtn.click()
@@ -389,27 +401,18 @@ export class AppComponent implements AfterViewInit {
   }
 
   downloadAllImages() {
-
     for (let i = 0; i < this.captures.length; i++) {
-      console.log(`${this.captures[i].position}-${this.captures[i].urlCrop}`)
-      const link = <HTMLAnchorElement>document.createElement('a');
-      link.href = String(this.captures[i].urlCrop)
-      link.setAttribute('download', `${this.captures[i].position}-image.jpeg`);
-      link.click();
+      setTimeout(() => {
+        const link = <HTMLAnchorElement>document.createElement('a');
+        link.href = String(this.captures[i].urlCrop)
+        link.setAttribute('download', `${this.captures[i].position}-image-${this.captures[i].id}.jpeg`);
+        document.body.appendChild(link)
+        link.click();
+        document.body.removeChild(link)
+      }, i * 500);
     }
-    console.log("🚀 this.captures", this.captures)
-
   }
 
-
-  sliceIntoChunks(arr, chunkSize) {
-    const res = [];
-    for (let i = 0; i < arr.length; i += chunkSize) {
-      const chunk = arr.slice(i, i + chunkSize);
-      res.push(chunk);
-    }
-    return res;
-  }
 
   async exitEditor(message?) {
     // console.log(message);
@@ -508,7 +511,8 @@ export class AppComponent implements AfterViewInit {
 
   downloadPdf() {
     this.capturesTemp = this.captures
-    let pdf = new jsPDF('l', 'mm', 'a4');
+    console.log("🚀 ~ file: app.component.ts ~ line 544 ~ AppComponent ~ downloadPdf ~  this.capturesTemp", this.capturesTemp)
+    let pdf = new jsPDF('l', 'pc', 'a4');
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
     const pageRatio = pageWidth / pageHeight;
@@ -516,11 +520,15 @@ export class AppComponent implements AfterViewInit {
       let img = new Image();
       setTimeout(() => {
         img.src = String(this.capturesTemp[i].urlCrop);
-      }, 2000);
+      }, i * 1000);
+
       img.onload = async () => {
-        const imgWidth = 640//this.WIDTH;
-        const imgHeight = 480 //this.HEIGHT;
+        const imgWidth = this.capturesTemp[i].widthCrop;
+        const imgHeight = this.capturesTemp[i].heightCrop;
+        console.log("🚀 ~ imgWidth", imgWidth)
+        console.log("🚀 ~ imgHeight", imgHeight)
         const imgRatio = imgWidth / imgHeight;
+        console.log("🚀~ imgRatio", imgRatio)
         if (i > 0) { await pdf.addPage(); }
         pdf.setPage(i + 1);
         if (imgRatio >= 1) {
@@ -554,9 +562,6 @@ export class AppComponent implements AfterViewInit {
 
       }
     }
-    // setTimeout(() => {
-    // this.captures = [];
-    // }, 2000);
   }
 
   async selectFile(event) {
@@ -653,5 +658,6 @@ export class AppComponent implements AfterViewInit {
     this.dropListReceiverElement = undefined;
     this.dragDropInfo = undefined;
   }
+
 
 }
