@@ -1,13 +1,13 @@
-<div class="marg-top10 panel-body">
-  <div class="clearfix">
+<div class="marg-top5 panel-body">
+  <div class="clearfix" [ngClass]="{'no-scroll':isEditing}">
     <!--BUTTONS  -->
-   <div class="form-row">
+   <div class="form-row" >
     <div class="form-item">
  
       <button class="text-button marg-left-butt10 marg-top10 text-uppercase" (click)="openCamera()" 
-      [disabled]="isEnabledButton">Camera</button>
+      *ngIf="!isEnabledButton">Camera</button>
       <button class="text-button marg-left-butt10 marg-top10 text-uppercase" (click)="openGallery()" 
-      [disabled]="isEnabledButton">Gallery</button>
+      *ngIf="!isEnabledButton">Gallery</button>
       <button class="text-button marg-left-butt10  marg-top10  red text-uppercase" (click)="onCancel()" 
       *ngIf="!isEnabledCancel">Cancel</button>
       <button class="text-button marg-left-butt10 marg-top10 green text-uppercase" (click)="downloadPdf()" 
@@ -17,8 +17,8 @@
   <!-- END BUTTONS -->
 
   <!-- CAMERA -->
-   <div class="form-row">
-        <div class="form-item" *ngIf="isCameraOpen && !isEditing">
+   <div class="form-row" *ngIf="isCameraOpen && !isEditing">
+        <div class="form-item" >
           <div [hidden]="!hasDevices">
             <div class="fl-grid-item-row">
               <div class="fl-grid-item fl-item-half">
@@ -77,8 +77,8 @@
   <!-- END CAMERA -->
 
     <!-- GALLERY -->
-    <div class="form-row">
-      <div class="form-item" *ngIf="isGalleryOpen">
+    <div class="form-row"  *ngIf="isGalleryOpen">
+      <div class="form-item">
         <div class="fl-grid-field-wrapper file-input-wrapper">
           <input type="text" id="filename" name="filename" class="file-input-textbox" readonly="readonly" ng-class="{'error-field' : ctrl.uploadedFile.id == null &amp;&amp; ctrl.form.$submitted &amp;&amp; (ctrl.form.$invalid) }">
   
@@ -90,7 +90,7 @@
     <!-- END GALLERY -->
 
   <!-- EDITOR -->
-  <div class="form-row no-scroll"  *ngIf="image && isEditing">
+  <div class="form-row"  *ngIf="image && isEditing">
     <div class="form-item">
       <div class="fl-grid-item-row">
        <div class="form-row">
