@@ -17,7 +17,12 @@ body {
   /* height: auto;
   position: fixed; */
   overscroll-behavior: contain;
-  overflow-x: hidden;
+  /* overflow-x: hidden; */
+  width:100%;
+	/* height:1000px; */
+	float:left;
+	margin:0;
+  /* background-color: red; */
 }
 
 /* END DISABLE REFRESH CHROME */

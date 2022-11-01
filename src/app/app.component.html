@@ -1,5 +1,5 @@
-<div class="marg-top5 panel-body">
-  <div class="clearfix" [ngClass]="{'no-scroll':isEditing}">
+<div class="marg-top5 panel-body" [ngClass]="{'no-scroll':isEditing}">
+  <div class="clearfix" >
     <!--BUTTONS  -->
    <div class="form-row" >
     <div class="form-item">
@@ -33,12 +33,21 @@
                 </div>
               </div>
             </div>
+
+            <!-- <ul>
+              <li *ngFor="let device of availableDevices"> 
+                <span>{{ device.deviceId }}</span>
+              </li>
+              <li>
+                {{ deviceCurrent?.deviceId }}
+              </li>
+            </ul> -->
         
             <div class="fl-grid-item-row">
               <div class="fl-grid-field-wrapper">
-              <div class="fl-grid-field"  *ngIf=" deviceCurrent.deviceId != '' ">
+              <div class="fl-grid-field"  *ngIf=" deviceCurrent?.deviceId != '' ">
              <div class="form-row">
-              <div class="form-item-right">
+              <div class="form-item-right" >
                 <video
                 [class.show]="!isCaptured"
                 [class.hide]="isCaptured"
@@ -90,7 +99,7 @@
     <!-- END GALLERY -->
 
   <!-- EDITOR -->
-  <div class="form-row"  *ngIf="image && isEditing">
+  <div class="form-row marg-top15 marg-bott15"  *ngIf="image && isEditing" style="position: fixed;">
     <div class="form-item">
       <div class="fl-grid-item-row">
        <div class="form-row">
@@ -128,6 +137,7 @@
   <!-- END EDITOR -->
 
  <!-- IMAGES LIST -->
+ <h1>TOTAL:::{{ captures.length  }}</h1>
  <div class="form-row" *ngIf="captures.length > 0 && !isEditing">
     <!-- <h1>List Of Images</h1> -->
     <button class="text-button  marg-top10  red" (click)="deleteAllImages()">
@@ -157,7 +167,7 @@
           <button class="general-button  marg-top10  red" (click)="deleteImage(capture)">
             <i class="fa fa-trash fa-2x"></i>
           </button>
-          <button class="general-button marg-left-butt10  marg-top10" (click)="editImage(capture)">
+          <button style="display: none;" class="general-button marg-left-butt10  marg-top10" (click)="editImage(capture)">
             <i class="fa fa-pencil fa-2x"></i>
           </button>
           <button class="general-button marg-left-butt10  marg-top10" (click)="downloadImage(capture)">

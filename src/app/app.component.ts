@@ -77,6 +77,9 @@ export class AppComponent implements AfterViewInit {
 
   buttonFilterId: string
   isDownloadAll: boolean
+
+  RESOLUTION_WIDTH: 4096
+  RESOLUTION_HEIGHT: 2160
   //#endregion
 
   constructor(private sanitizer_: DomSanitizer) {
@@ -191,8 +194,8 @@ export class AppComponent implements AfterViewInit {
   async getPermissions() {
     await navigator.mediaDevices.getUserMedia({
       video: {
-        width: { ideal: 1920 },
-        height: { ideal: 1080 }
+        width: { ideal: this.RESOLUTION_WIDTH },
+        height: { ideal: this.RESOLUTION_HEIGHT }
       }
     })
       .then(success => this.onHasPermission(true))
@@ -222,57 +225,49 @@ export class AppComponent implements AfterViewInit {
   }
 
   async onDeviceSelectChange(selected: string) {
+    try {
+      this.video.nativeElement.srcObject = null;
+      this.video.nativeElement.stop();
+      this.error = null;
+    } catch (error) {
+      this.error = error
+    }
 
     const selectedStr = selected || '';
-    // if (this.deviceSelected === selectedStr) { return; }
     this.deviceSelected = selectedStr;
-    const device = this.availableDevices.find(x => x.deviceId === selected);
+    const device = this.availableDevices.find(x => x.deviceId === selectedStr);
     this.deviceCurrent = device || this.emptyDevice;
-    if (selected != '') {
+    if (selectedStr != '') {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
             deviceId: this.deviceCurrent.deviceId,
-            width: { ideal: 1920 },
-            height: { ideal: 1080 }
+            width: { ideal: this.RESOLUTION_WIDTH },
+            height: { ideal: this.RESOLUTION_HEIGHT }
           }
         })
-        let stream_settings = stream.getVideoTracks()[0].getSettings();
-        this.WIDTH = stream_settings.width
-        this.HEIGHT = stream_settings.height
+
         if (stream) {
+          let stream_settings = stream.getVideoTracks()[0].getSettings();
+          this.WIDTH = stream_settings.width
+          this.HEIGHT = stream_settings.height
+
           this.video.nativeElement.srcObject = stream;
           this.video.nativeElement.stop();
           this.video.nativeElement.play();
           this.error = null;
-        } else {
-          this.video.nativeElement.srcObject = null;
-          this.video.nativeElement.stop();
-          this.error = "You have no output video device";
         }
       } catch (e) {
         this.error = e;
-      }
-
-    } else {
-      try {
-        this.video.nativeElement.srcObject = null;
-        this.video.nativeElement.stop();
-        this.error = null;
-      } catch (error) {
-        this.error = error
-
       }
     }
 
   }
 
   capture() {
-    // this.video.nativeElement.pause();
     this.drawImageToCanvas(this.video.nativeElement);
     let imageBase64 = this.canvas.nativeElement.toDataURL("image/png")
     this.urlOriginal = URL.createObjectURL(this.convertBase64ToBlob(imageBase64))
-    // this.urlOriginal = imageBase64;
     let date = new Date().getTime()
     let filename: string = String(date)
     var file = this.dataURLtoFile(imageBase64, `${filename}.png`)
@@ -329,10 +324,16 @@ export class AppComponent implements AfterViewInit {
 
   editResult(result: Blob) {
 
+    // window.scroll({
+    //   top: 0,
+    //   left: 0,
+    //   behavior: 'smooth'
+    // });
+
     let date = new Date().toLocaleTimeString()
     let filename: string = `${date.split(':')[0]}${date.split(':')[1]}${date.split(':')[2]}`
     const img = new Image()
-    let imgFull = this.imageFull
+    // let imgFull = this.imageFull
     let captureEditing = this.captureEditing
     img.onload = (event: any) => {
 
@@ -341,8 +342,7 @@ export class AppComponent implements AfterViewInit {
           id: filename,
           urlCrop: URL.createObjectURL(result),
           safeUrl: this.sanitizer_.bypassSecurityTrustUrl(URL.createObjectURL(result)),
-          // urlOriginal:  this.sanitizer_.bypassSecurityTrustUrl(this.urlOriginal)
-          imageFull: imgFull,// this.imageFull,
+          imageFull: "",//imgFull,
           position: this.captures.length + 1,
           widthCrop: event.path[0].naturalWidth,
           heightCrop: event.path[0].naturalHeight
@@ -354,8 +354,8 @@ export class AppComponent implements AfterViewInit {
           if (capture.id == captureEditing.id) {
             capture.urlCrop = URL.createObjectURL(result);
             capture.safeUrl = this.sanitizer_.bypassSecurityTrustUrl(URL.createObjectURL(result));
-            capture.widthCrop = event.path[0].naturalWidth,
-              capture.heightCrop = event.path[0].naturalHeight
+            capture.widthCrop = event.path[0].naturalWidth
+            capture.heightCrop = event.path[0].naturalHeight
           }
         })
       }
@@ -398,6 +398,8 @@ export class AppComponent implements AfterViewInit {
     this.captures = []
     if (this.captureEditing != null)
       this.exitEditor()
+
+    this.clearCache()
   }
 
   downloadAllImages() {
@@ -415,20 +417,12 @@ export class AppComponent implements AfterViewInit {
 
 
   async exitEditor(message?) {
-    // console.log(message);
     this.image = null;
     this.isCaptured = false;
-    // this.isCameraOpen = false;
-    // this.deviceCurrent = this.emptyDevice
-    // this.deviceSelected = this.deviceCurrent.deviceId
     this.urlOriginal = ''
     this.imageFull = ''
     this.captureEditing = null
     this.isEditing = false;
-
-    // this.isGalleryOpen = false;
-    // this.isEnabledCancel = true;
-    // this.isEnabledButton = false
 
     this.buttonFilterId = 'filter_0'
 
@@ -437,7 +431,6 @@ export class AppComponent implements AfterViewInit {
 
     if (this.deviceSelectedTemp != '') {
       await this.onDeviceSelectChange(this.deviceSelectedTemp)
-      // this.deviceSelected = this.deviceSelectedTemp
     }
 
   }
@@ -511,7 +504,6 @@ export class AppComponent implements AfterViewInit {
 
   downloadPdf() {
     this.capturesTemp = this.captures
-    console.log("🚀 ~ file: app.component.ts ~ line 544 ~ AppComponent ~ downloadPdf ~  this.capturesTemp", this.capturesTemp)
     let pdf = new jsPDF('l', 'pc', 'a4');
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
@@ -525,10 +517,7 @@ export class AppComponent implements AfterViewInit {
       img.onload = async () => {
         const imgWidth = this.capturesTemp[i].widthCrop;
         const imgHeight = this.capturesTemp[i].heightCrop;
-        console.log("🚀 ~ imgWidth", imgWidth)
-        console.log("🚀 ~ imgHeight", imgHeight)
         const imgRatio = imgWidth / imgHeight;
-        console.log("🚀~ imgRatio", imgRatio)
         if (i > 0) { await pdf.addPage(); }
         pdf.setPage(i + 1);
         if (imgRatio >= 1) {
@@ -562,6 +551,12 @@ export class AppComponent implements AfterViewInit {
 
       }
     }
+
+    this.clearCache()
+  }
+
+  clearCache() {
+    caches.keys().then((keyList) => Promise.all(keyList.map((key) => caches.delete(key))))
   }
 
   async selectFile(event) {
