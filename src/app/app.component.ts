@@ -80,9 +80,12 @@ export class AppComponent implements AfterViewInit {
 
   RESOLUTION_WIDTH: 4096
   RESOLUTION_HEIGHT: 2160
+
+  IS_FIREFOX: boolean
   //#endregion
 
   constructor(private sanitizer_: DomSanitizer) {
+    this.IS_FIREFOX = navigator.userAgent.indexOf("Firefox") != -1
     this.isEnabledButton = false
     this.isCameraOpen = false
     this.isGalleryOpen = false
@@ -324,19 +327,13 @@ export class AppComponent implements AfterViewInit {
 
   editResult(result: Blob) {
 
-    // window.scroll({
-    //   top: 0,
-    //   left: 0,
-    //   behavior: 'smooth'
-    // });
-
     let date = new Date().toLocaleTimeString()
     let filename: string = `${date.split(':')[0]}${date.split(':')[1]}${date.split(':')[2]}`
     const img = new Image()
     // let imgFull = this.imageFull
     let captureEditing = this.captureEditing
-    img.onload = (event: any) => {
 
+    img.onload = (event: any) => {
       if (captureEditing == null) {
         this.captureModel = {
           id: filename,
@@ -344,8 +341,8 @@ export class AppComponent implements AfterViewInit {
           safeUrl: this.sanitizer_.bypassSecurityTrustUrl(URL.createObjectURL(result)),
           imageFull: "",//imgFull,
           position: this.captures.length + 1,
-          widthCrop: event.path[0].naturalWidth,
-          heightCrop: event.path[0].naturalHeight
+          widthCrop: this.IS_FIREFOX ? event.currentTarget.naturalWidth : event.path[0].naturalWidth,
+          heightCrop: this.IS_FIREFOX ? event.currentTarget.naturalHeight : event.path[0].naturalHeight
         }
 
         this.captures.push(this.captureModel);
@@ -354,8 +351,9 @@ export class AppComponent implements AfterViewInit {
           if (capture.id == captureEditing.id) {
             capture.urlCrop = URL.createObjectURL(result);
             capture.safeUrl = this.sanitizer_.bypassSecurityTrustUrl(URL.createObjectURL(result));
-            capture.widthCrop = event.path[0].naturalWidth
-            capture.heightCrop = event.path[0].naturalHeight
+            capture.widthCrop = this.IS_FIREFOX ? event.currentTarget.naturalWidth : event.path[0].naturalWidth;
+            capture.heightCrop = this.IS_FIREFOX ? event.currentTarget.naturalHeight : event.path[0].naturalHeight;
+
           }
         })
       }
