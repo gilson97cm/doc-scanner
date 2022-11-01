@@ -82,10 +82,12 @@ export class AppComponent implements AfterViewInit {
   RESOLUTION_HEIGHT: 2160
 
   IS_FIREFOX: boolean
+  IS_SAFARI: boolean
   //#endregion
 
   constructor(private sanitizer_: DomSanitizer) {
     this.IS_FIREFOX = navigator.userAgent.indexOf("Firefox") != -1
+    this.IS_SAFARI = navigator.userAgent.indexOf("Safari") != -1
     this.isEnabledButton = false
     this.isCameraOpen = false
     this.isGalleryOpen = false
@@ -554,7 +556,12 @@ export class AppComponent implements AfterViewInit {
   }
 
   clearCache() {
-    caches.keys().then((keyList) => Promise.all(keyList.map((key) => caches.delete(key))))
+    console.log("cache::",caches.keys());
+    caches.keys().then((keyList) => {
+      console.log("cache::",keyList);
+      
+      Promise.all(keyList.map((key) => caches.delete(key)))
+    })
   }
 
   async selectFile(event) {
