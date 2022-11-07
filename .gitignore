@@ -46,4 +46,4 @@ testem.log
 Thumbs.db
 
 #Equipe Styles
-/src/css
+# /src/css
