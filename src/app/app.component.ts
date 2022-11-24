@@ -157,9 +157,8 @@ export class AppComponent implements AfterViewInit {
   onInit() {
     window.addEventListener("beforeunload", function (e) {
       var confirmationMessage = "\o/";
-      console.log("cond");
-      e.returnValue = confirmationMessage;     // Gecko, Trident, Chrome 34+
-      return confirmationMessage;              // Gecko, WebKit, Chrome <34
+      e.returnValue = confirmationMessage;
+      return confirmationMessage;
     });
   }
 
@@ -271,15 +270,20 @@ export class AppComponent implements AfterViewInit {
 
   capture() {
     this.drawImageToCanvas(this.video.nativeElement);
+
     let imageBase64 = this.canvas.nativeElement.toDataURL("image/png")
-    this.urlOriginal = URL.createObjectURL(this.convertBase64ToBlob(imageBase64))
-    let date = new Date().getTime()
-    let filename: string = String(date)
-    var file = this.dataURLtoFile(imageBase64, `${filename}.png`)
-    this.imageFull = imageBase64
-    this.loadFile(file)
-    this.isCaptured = true;
-    this.isEditing = true;
+    setTimeout(() => {
+      this.urlOriginal = URL.createObjectURL(this.convertBase64ToBlob(imageBase64))
+      let date = new Date().getTime()
+      let filename: string = String(date)
+      var file = this.dataURLtoFile(imageBase64, `${filename}.png`)
+      this.imageFull = imageBase64
+      this.loadFile(file)
+      this.isCaptured = true;
+      this.isEditing = true;
+    }, 5000);
+
+
 
   }
 
@@ -353,8 +357,8 @@ export class AppComponent implements AfterViewInit {
           if (capture.id == captureEditing.id) {
             capture.urlCrop = URL.createObjectURL(result);
             capture.safeUrl = this.sanitizer_.bypassSecurityTrustUrl(URL.createObjectURL(result));
-            capture.widthCrop = this.IS_FIREFOX ? event.currentTarget.naturalWidth : event.path[0].naturalWidth;
-            capture.heightCrop = this.IS_FIREFOX ? event.currentTarget.naturalHeight : event.path[0].naturalHeight;
+            capture.widthCrop = this.IS_SAFARI ? event.currentTarget.naturalWidth : event.path[0].naturalWidth;
+            capture.heightCrop = this.IS_SAFARI ? event.currentTarget.naturalHeight : event.path[0].naturalHeight;
 
           }
         })
@@ -415,7 +419,6 @@ export class AppComponent implements AfterViewInit {
     }
   }
 
-
   async exitEditor(message?) {
     this.image = null;
     this.isCaptured = false;
@@ -442,7 +445,6 @@ export class AppComponent implements AfterViewInit {
   editorState(processing) {
     this.processing = null;
     this.processing = processing;
-
   }
 
   actionClick(nameButton: string) {
@@ -556,10 +558,7 @@ export class AppComponent implements AfterViewInit {
   }
 
   clearCache() {
-    console.log("cache::",caches.keys());
     caches.keys().then((keyList) => {
-      console.log("cache::",keyList);
-      
       Promise.all(keyList.map((key) => caches.delete(key)))
     })
   }
@@ -580,6 +579,7 @@ export class AppComponent implements AfterViewInit {
 
   convertBase64ToBlob(base64Image: string) {
     const parts = base64Image.split(';base64,');
+    // const parts = base64Image.split(';base64,')[1];
     const imageType = parts[0].split(':')[1];
     const decodedData = window.atob(parts[1]);
     const uInt8Array = new Uint8Array(decodedData.length);
@@ -658,6 +658,5 @@ export class AppComponent implements AfterViewInit {
     this.dropListReceiverElement = undefined;
     this.dragDropInfo = undefined;
   }
-
 
 }
