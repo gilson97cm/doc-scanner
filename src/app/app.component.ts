@@ -271,9 +271,13 @@ export class AppComponent implements AfterViewInit {
   capture() {
     this.drawImageToCanvas(this.video.nativeElement);
 
-    let imageBase64 = this.canvas.nativeElement.toDataURL("image/png")
+  //TIMEOUT PENDIENTE
+    
     setTimeout(() => {
-      this.urlOriginal = URL.createObjectURL(this.convertBase64ToBlob(imageBase64))
+      let imageBase64 = this.canvas.nativeElement.toDataURL('image/png')
+      const blob = this.b64toBlob(imageBase64)
+
+      this.urlOriginal = URL.createObjectURL(blob)
       let date = new Date().getTime()
       let filename: string = String(date)
       var file = this.dataURLtoFile(imageBase64, `${filename}.png`)
@@ -287,6 +291,7 @@ export class AppComponent implements AfterViewInit {
 
   }
 
+
   drawImageToCanvas(image) {
     this.canvas.nativeElement
       .getContext("2d")
@@ -295,10 +300,10 @@ export class AppComponent implements AfterViewInit {
 
   dataURLtoFile(dataUrl, filename) {
     var arr = dataUrl.split(','),
-      mime = arr[0].match(/:(.*?);/)[1],
-      bstr = atob(arr[1]),
-      n = bstr.length,
-      u8arr = new Uint8Array(n);
+    mime ="image/png", // arr[0].match(/:(.*?);/)[1],
+    bstr = atob(arr[1]),
+    n = bstr.length,
+    u8arr = new Uint8Array(n);
     while (n--) {
       u8arr[n] = bstr.charCodeAt(n);
     }
@@ -340,6 +345,7 @@ export class AppComponent implements AfterViewInit {
     let captureEditing = this.captureEditing
 
     img.onload = (event: any) => {
+      console.log("🚀 ~ editResult ~ event", event.currentTarget.naturalWidth,)
       if (captureEditing == null) {
         this.captureModel = {
           id: filename,
@@ -347,8 +353,8 @@ export class AppComponent implements AfterViewInit {
           safeUrl: this.sanitizer_.bypassSecurityTrustUrl(URL.createObjectURL(result)),
           imageFull: "",//imgFull,
           position: this.captures.length + 1,
-          widthCrop: this.IS_FIREFOX ? event.currentTarget.naturalWidth : event.path[0].naturalWidth,
-          heightCrop: this.IS_FIREFOX ? event.currentTarget.naturalHeight : event.path[0].naturalHeight
+          widthCrop: event.currentTarget.naturalWidth,//this.IS_SAFARI ? event.currentTarget.naturalWidth : event.path[0].naturalWidth,
+          heightCrop: event.currentTarget.naturalHeight// this.IS_SAFARI ? event.currentTarget.naturalHeight : event.path[0].naturalHeight
         }
 
         this.captures.push(this.captureModel);
@@ -577,19 +583,30 @@ export class AppComponent implements AfterViewInit {
     }
   }
 
-  convertBase64ToBlob(base64Image: string) {
-    const parts = base64Image.split(';base64,');
-    // const parts = base64Image.split(';base64,')[1];
-    const imageType = parts[0].split(':')[1];
-    const decodedData = window.atob(parts[1]);
-    const uInt8Array = new Uint8Array(decodedData.length);
-
-    for (let i = 0; i < decodedData.length; ++i) {
-      uInt8Array[i] = decodedData.charCodeAt(i);
+  b64toBlob(dataURI) {
+    
+    var byteString = atob(dataURI.split(',')[1]);
+    var ab = new ArrayBuffer(byteString.length);
+    var ia = new Uint8Array(ab);
+    
+    for (var i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
     }
+    return new Blob([ab], { type: 'image/png' });
+}
 
-    return new Blob([uInt8Array], { type: imageType });
-  }
+  // convertBase64ToBlob(base64Image: string) {
+  //   const parts = base64Image.split(';base64,');
+  //   const imageType = parts[0].split(':')[1];
+  //   const decodedData = window.atob(parts[1]);
+  //   const uInt8Array = new Uint8Array(decodedData.length);
+
+  //   for (let i = 0; i < decodedData.length; ++i) {
+  //     uInt8Array[i] = decodedData.charCodeAt(i);
+  //   }
+
+  //   return new Blob([uInt8Array], { type: imageType });
+  // }
 
   async blobToBase64(url) {
     return new Promise(async (resolve, _) => {
