@@ -46,6 +46,7 @@ export class AppComponent implements AfterViewInit {
   deviceSelected: string;
   deviceSelectedTemp: string;
   availableDevices: MediaDeviceInfo[];
+  stream: any = null;
 
   urlOriginal: string
   imageFull: string
@@ -243,67 +244,72 @@ export class AppComponent implements AfterViewInit {
     this.deviceCurrent = device || this.emptyDevice;
     if (selectedStr != '') {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
+        if(this.stream){
+          this.stream.getTracks().forEach(t => {
+            t.stop();
+            this.stream.removeTrack(t);
+          });
+        }
+        this.stream = await navigator.mediaDevices.getUserMedia({
           video: {
             deviceId: this.deviceCurrent.deviceId,
             width: { ideal: this.RESOLUTION_WIDTH },
             height: { ideal: this.RESOLUTION_HEIGHT }
           }
+        }).then(()=>{
+          if (this.stream) {
+            let stream_settings = this.stream.getVideoTracks()[0].getSettings();
+            this.WIDTH = stream_settings.width
+            this.HEIGHT = stream_settings.height
+  
+            this.video.nativeElement.srcObject = this.stream;
+            // this.video.nativeElement.stop();
+            this.video.nativeElement.play();
+            this.error = null;
+          }
         })
 
-        if (stream) {
-          let stream_settings = stream.getVideoTracks()[0].getSettings();
-          this.WIDTH = stream_settings.width
-          this.HEIGHT = stream_settings.height
-
-          this.video.nativeElement.srcObject = stream;
-          this.video.nativeElement.stop();
-          this.video.nativeElement.play();
-          this.error = null;
-        }
       } catch (e) {
+        console.log("🚀 onDeviceSelectChange ~ e", e)
         this.error = e;
       }
     }
 
   }
 
-  capture() {
-    this.drawImageToCanvas(this.video.nativeElement);
+  async capture() {
+    // this.drawImageToCanvas(this.video.nativeElement);
+    const ctx = this.canvas.nativeElement
+      .getContext("2d")
+    await ctx.drawImage(this.video.nativeElement, 0, 0);
 
-  //TIMEOUT PENDIENTE
-    
-    setTimeout(() => {
-      let imageBase64 = this.canvas.nativeElement.toDataURL('image/png')
-      const blob = this.b64toBlob(imageBase64)
+    let imageBase64 = this.canvas.nativeElement.toDataURL('image/jpeg')
+    const blob = this.b64toBlob(imageBase64)
 
-      this.urlOriginal = URL.createObjectURL(blob)
-      let date = new Date().getTime()
-      let filename: string = String(date)
-      var file = this.dataURLtoFile(imageBase64, `${filename}.png`)
-      this.imageFull = imageBase64
-      this.loadFile(file)
-      this.isCaptured = true;
-      this.isEditing = true;
-    }, 5000);
-
-
+    this.urlOriginal = URL.createObjectURL(blob)
+    let date = new Date().getTime()
+    let filename: string = String(date)
+    var file = this.dataURLtoFile(imageBase64, `${filename}.jpeg`)
+    this.imageFull = imageBase64
+    this.loadFile(file)
+    this.isCaptured = true;
+    this.isEditing = true;
 
   }
 
 
-  drawImageToCanvas(image) {
-    this.canvas.nativeElement
+  async drawImageToCanvas(image) {
+    const ctx = this.canvas.nativeElement
       .getContext("2d")
-      .drawImage(image, 0, 0);
+    await ctx.drawImage(image, 0, 0);
   }
 
   dataURLtoFile(dataUrl, filename) {
     var arr = dataUrl.split(','),
-    mime ="image/png", // arr[0].match(/:(.*?);/)[1],
-    bstr = atob(arr[1]),
-    n = bstr.length,
-    u8arr = new Uint8Array(n);
+      mime = "image/jpeg", // arr[0].match(/:(.*?);/)[1],
+      bstr = atob(arr[1]),
+      n = bstr.length,
+      u8arr = new Uint8Array(n);
     while (n--) {
       u8arr[n] = bstr.charCodeAt(n);
     }
@@ -336,7 +342,7 @@ export class AppComponent implements AfterViewInit {
     }) !== -1;
   }
 
-  editResult(result: Blob) {
+  async editResult(result: Blob) {
 
     let date = new Date().toLocaleTimeString()
     let filename: string = `${date.split(':')[0]}${date.split(':')[1]}${date.split(':')[2]}`
@@ -345,7 +351,6 @@ export class AppComponent implements AfterViewInit {
     let captureEditing = this.captureEditing
 
     img.onload = (event: any) => {
-      console.log("🚀 ~ editResult ~ event", event.currentTarget.naturalWidth,)
       if (captureEditing == null) {
         this.captureModel = {
           id: filename,
@@ -377,12 +382,16 @@ export class AppComponent implements AfterViewInit {
     backBtn.click()
     const exitBtn = <HTMLButtonElement>document.querySelector('button[name="exit"]')
     exitBtn.click()
+
+    await this.onDeviceSelectChange(this.deviceSelectedTemp)
+
+
     this.exitEditor()
   }
 
   editImage(capture: Capture) {
     this.captureEditing = capture
-    var file = this.dataURLtoFile(capture.imageFull, `${capture.id}.png`)
+    var file = this.dataURLtoFile(capture.imageFull, `${capture.id}.jpeg`)
     this.loadFile(file)
     this.isCaptured = true;
     this.isEditing = true;
@@ -436,11 +445,11 @@ export class AppComponent implements AfterViewInit {
     this.buttonFilterId = 'filter_0'
 
     this.deviceSelectedTemp = this.deviceSelected
-    await this.onDeviceSelectChange('')
+    // await this.onDeviceSelectChange('')
 
-    if (this.deviceSelectedTemp != '') {
-      await this.onDeviceSelectChange(this.deviceSelectedTemp)
-    }
+    // if (this.deviceSelectedTemp != '') {
+      // await this.onDeviceSelectChange(this.deviceSelectedTemp)
+    // }
 
   }
 
@@ -584,16 +593,16 @@ export class AppComponent implements AfterViewInit {
   }
 
   b64toBlob(dataURI) {
-    
+
     var byteString = atob(dataURI.split(',')[1]);
     var ab = new ArrayBuffer(byteString.length);
     var ia = new Uint8Array(ab);
-    
+
     for (var i = 0; i < byteString.length; i++) {
-        ia[i] = byteString.charCodeAt(i);
+      ia[i] = byteString.charCodeAt(i);
     }
-    return new Blob([ab], { type: 'image/png' });
-}
+    return new Blob([ab], { type: 'image/jpeg' });
+  }
 
   // convertBase64ToBlob(base64Image: string) {
   //   const parts = base64Image.split(';base64,');
