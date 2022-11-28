@@ -1,4 +1,4 @@
-<div class="marg-top5 panel-body" [ngClass]="{'no-scroll':isEditing}">
+<div class="marg-top5 panel-body">
   <div class="clearfix" >
     <!--BUTTONS  -->
    <div class="form-row" >
@@ -8,10 +8,10 @@
       *ngIf="!isEnabledButton">Camera</button>
       <button class="text-button marg-left-butt10 marg-top10 text-uppercase" (click)="openGallery()" 
       *ngIf="!isEnabledButton">Gallery</button>
-      <button class="text-button marg-left-butt10  marg-top10  red text-uppercase" (click)="onCancel()" 
+      <button style="z-index: 999;" class="text-button marg-left-butt10  marg-top10  red text-uppercase" (click)="onCancel()" 
       *ngIf="!isEnabledCancel">Cancel</button>
-      <button class="text-button marg-left-butt10 marg-top10 green text-uppercase" (click)="downloadPdf()" 
-      [disabled]="captures.length <= 0" >Create PDF with {{ captures.length }} images</button>
+      <!-- <button class="text-button marg-left-butt10 marg-top10 green text-uppercase" (click)="downloadPdf()" 
+      [disabled]="captures.length <= 0" >Create PDF with {{ captures.length }} images</button> -->
     </div>
   </div>
   <!-- END BUTTONS -->
@@ -109,8 +109,8 @@
        </div>
       </div>
       <div class="fl-grid-item-row">
-        <div class="fl-grid-item fl-item-half">
-          <ngx-doc-scanner 
+        <div class="fl-grid-item fl-item-half marg-top15">
+          <!-- <ngx-doc-scanner 
           id="scanner"
           [file]="image"
           (editResult)="editResult($event)"
@@ -118,10 +118,21 @@
           (error)="onError($event)"
           (processing)="editorState($event)"
           [config]="config">
-        </ngx-doc-scanner>
+        </ngx-doc-scanner> -->
+        <app-image-editor 
+        id="scanner"
+        [file]="image"
+        (editResult)="editResult($event)"
+        (exitEditor)="exitEditor()"
+        (error)="onError($event)"
+        (processing)="editorState($event)"
+        [config]="config"
+        [stream_width]="WIDTH"
+        [stream_height]="HEIGHT">
+      </app-image-editor>
         </div>
       </div>
-      <div class="fl-grid-item-row fl-item-wrapper " >
+      <!-- <div class="fl-grid-item-row fl-item-wrapper " >
         <button class="text-button" (click)="actionClick(!doneCrop ? EXIT : BACK)">
           <i class="fa fa-arrow-left fa-2x"></i>&nbsp;{{ !doneCrop ? 'Exit' : 'Back' }}
         </button>
@@ -131,7 +142,7 @@
         <button class="text-button marg-left10 {{ doneCrop && 'green' }}" (click)="actionClick(!doneCrop ? DONE_CROP : UPLOAD)">
           <i class="fa fa-{{ !doneCrop ? 'check':'floppy-o' }} fa-2x"></i>&nbsp;{{ !doneCrop ? 'Done' : 'Save' }}
         </button>
-      </div>
+      </div> -->
     </div>
   </div>
   <!-- END EDITOR -->
@@ -142,8 +153,11 @@
     <button class="text-button  marg-top10  red" (click)="deleteAllImages()">
       <i class="fa fa-trash fa-2x"></i>&nbsp;Delete All Images
     </button>
-    <button class="text-button marg-left-butt10  marg-top10" (click)="downloadAllImages()" [disabled]="isDownloadAll">
+    <!-- <button  class="text-button marg-left-butt10  marg-top10" (click)="downloadAllImages()" [disabled]="isDownloadAll">
       <i class="fa fa-download fa-2x"></i>&nbsp;Download All Images
+    </button> -->
+    <button class="text-button marg-left-butt10  marg-top10 green" (click)="downloadPdf()" [disabled]="isDownloadAll">
+      <i class="fa fa-floppy-o fa-2x"></i>&nbsp;Save PDF with {{ captures.length }} images 
     </button>
     <div #dropListContainer class="form-row example-container " cdkDropListGroup  >
       <figure cdkDropList
@@ -166,9 +180,9 @@
           <button class="general-button  marg-top10  red" (click)="deleteImage(capture)">
             <i class="fa fa-trash fa-2x"></i>
           </button>
-          <button style="display: none;" class="general-button marg-left-butt10  marg-top10" (click)="editImage(capture)">
+          <!-- <button style="display: none;" class="general-button marg-left-butt10  marg-top10" (click)="editImage(capture)">
             <i class="fa fa-pencil fa-2x"></i>
-          </button>
+          </button> -->
           <button class="general-button marg-left-butt10  marg-top10" (click)="downloadImage(capture)">
             <i class="fa fa-download fa-2x"></i>
           </button>

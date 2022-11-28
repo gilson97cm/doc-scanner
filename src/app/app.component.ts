@@ -1,10 +1,11 @@
 import { Component, Sanitizer } from '@angular/core';
-import { DocScannerConfig } from 'src/lib/ngx-document-scanner';
+// import { DocScannerConfig } from 'src/lib/ngx-document-scanner';
 import { ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { Capture } from './models/Capture';
 import jsPDF from 'jspdf';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { CdkDragDrop, CdkDragEnter, CdkDragMove, moveItemInArray } from '@angular/cdk/drag-drop';
+import { DocScannerConfig } from './modules/ngx-document-scanner/PublicModels';
 
 @Component({
   selector: 'app-root',
@@ -61,12 +62,12 @@ export class AppComponent implements AfterViewInit {
 
   doneCrop: boolean;
 
-  EXIT: string
-  ROTATE: string
-  DONE_CROP: string
-  BACK: string
-  FILTER: string
-  UPLOAD: string
+  // EXIT: string
+  // ROTATE: string
+  // DONE_CROP: string
+  // BACK: string
+  // FILTER: string
+  // UPLOAD: string
 
   capturesTemp: Capture[]
 
@@ -139,13 +140,13 @@ export class AppComponent implements AfterViewInit {
 
     this.doneCrop = false
 
-    this.EXIT = 'exit'
-    this.ROTATE = 'rotate'
-    this.DONE_CROP = 'done_crop'
+    // this.EXIT = 'exit'
+    // this.ROTATE = 'rotate'
+    // this.DONE_CROP = 'done_crop'
 
-    this.BACK = 'back'
-    this.FILTER = 'filter'
-    this.UPLOAD = 'upload'
+    // this.BACK = 'back'
+    // this.FILTER = 'filter'
+    // this.UPLOAD = 'upload'
 
     this.capturesTemp = []
 
@@ -244,7 +245,7 @@ export class AppComponent implements AfterViewInit {
     this.deviceCurrent = device || this.emptyDevice;
     if (selectedStr != '') {
       try {
-        if(this.stream){
+        if (this.stream) {
           this.stream.getTracks().forEach(t => {
             t.stop();
             this.stream.removeTrack(t);
@@ -256,21 +257,20 @@ export class AppComponent implements AfterViewInit {
             width: { ideal: this.RESOLUTION_WIDTH },
             height: { ideal: this.RESOLUTION_HEIGHT }
           }
-        }).then(()=>{
-          if (this.stream) {
-            let stream_settings = this.stream.getVideoTracks()[0].getSettings();
-            this.WIDTH = stream_settings.width
-            this.HEIGHT = stream_settings.height
-  
-            this.video.nativeElement.srcObject = this.stream;
-            // this.video.nativeElement.stop();
-            this.video.nativeElement.play();
-            this.error = null;
-          }
         })
 
+        if (this.stream) {
+          let stream_settings = this.stream.getVideoTracks()[0].getSettings();
+          this.WIDTH = stream_settings.width
+          this.HEIGHT = stream_settings.height
+
+          this.video.nativeElement.srcObject = this.stream;
+          // this.video.nativeElement.stop();
+          this.video.nativeElement.play();
+          this.error = null;
+        }
+
       } catch (e) {
-        console.log("🚀 onDeviceSelectChange ~ e", e)
         this.error = e;
       }
     }
@@ -279,9 +279,12 @@ export class AppComponent implements AfterViewInit {
 
   async capture() {
     // this.drawImageToCanvas(this.video.nativeElement);
+
     const ctx = this.canvas.nativeElement
       .getContext("2d")
     await ctx.drawImage(this.video.nativeElement, 0, 0);
+    ctx.imageSmoothingEnabled = false
+
 
     let imageBase64 = this.canvas.nativeElement.toDataURL('image/jpeg')
     const blob = this.b64toBlob(imageBase64)
@@ -448,7 +451,7 @@ export class AppComponent implements AfterViewInit {
     // await this.onDeviceSelectChange('')
 
     // if (this.deviceSelectedTemp != '') {
-      // await this.onDeviceSelectChange(this.deviceSelectedTemp)
+    // await this.onDeviceSelectChange(this.deviceSelectedTemp)
     // }
 
   }
@@ -462,45 +465,45 @@ export class AppComponent implements AfterViewInit {
     this.processing = processing;
   }
 
-  actionClick(nameButton: string) {
-    const button = <HTMLButtonElement>document.querySelector(`button[name="${nameButton}"]`)
-    button.click()
+  // actionClick(nameButton: string) {
+  //   const button = <HTMLButtonElement>document.querySelector(`button[name="${nameButton}"]`)
+  //   button.click()
 
-    nameButton == this.DONE_CROP && (this.doneCrop = true);
-    nameButton == this.ROTATE && (this.doneCrop = false);
-    nameButton == this.BACK && (this.doneCrop = false);
-    nameButton == this.UPLOAD && (this.doneCrop = false);
+  //   nameButton == this.DONE_CROP && (this.doneCrop = true);
+  //   nameButton == this.ROTATE && (this.doneCrop = false);
+  //   nameButton == this.BACK && (this.doneCrop = false);
+  //   nameButton == this.UPLOAD && (this.doneCrop = false);
 
-    this.onFilterClick(nameButton)
-  }
+  //   this.onFilterClick(nameButton)
+  // }
 
-  onFilterClick(nameButton: String) {
-    if (nameButton == 'filter') {
-      const buttons: NodeListOf<HTMLButtonElement> = document.querySelectorAll('button[mat-list-item]')
-      buttons.forEach((btn, index) => {
-        btn.setAttribute('id', `filter_${index}`)
-        btn.classList.add('general-button')
-        btn.innerHTML = `
-        <div class="mat-list-item-content" style="flex-direction: row; box-sizing: border-box; display: flex;">
-        <div mat-ripple="" class="mat-ripple mat-list-item-ripple"></div>
-        <div class="mat-list-text"></div>
-        <span fxflex="100" style="text-align: start; margin: 5px; flex: 1 1 100%; box-sizing: border-box; max-width: 100%;">
-         `+ this.setText(index) + `
-        </span>
-        <span fxflex="100" style="flex: 1 1 100%; box-sizing: border-box; max-width: 100%;"></span>
-        `+ this.setDone(`filter_${index}`) + `
-        </div>
-        `
-        btn.addEventListener('click', (e: any) => {
-          if (e.path.length == 13)
-            this.buttonFilterId = e.path[2].id
-          else
-            this.buttonFilterId = e.path[1].id
-        })
-      })
+  // onFilterClick(nameButton: String) {
+  //   if (nameButton == 'filter') {
+  //     const buttons: NodeListOf<HTMLButtonElement> = document.querySelectorAll('button[mat-list-item]')
+  //     buttons.forEach((btn, index) => {
+  //       btn.setAttribute('id', `filter_${index}`)
+  //       btn.classList.add('general-button')
+  //       btn.innerHTML = `
+  //       <div class="mat-list-item-content" style="flex-direction: row; box-sizing: border-box; display: flex;">
+  //       <div mat-ripple="" class="mat-ripple mat-list-item-ripple"></div>
+  //       <div class="mat-list-text"></div>
+  //       <span fxflex="100" style="text-align: start; margin: 5px; flex: 1 1 100%; box-sizing: border-box; max-width: 100%;">
+  //        `+ this.setText(index) + `
+  //       </span>
+  //       <span fxflex="100" style="flex: 1 1 100%; box-sizing: border-box; max-width: 100%;"></span>
+  //       `+ this.setDone(`filter_${index}`) + `
+  //       </div>
+  //       `
+  //       btn.addEventListener('click', (e: any) => {
+  //         if (e.path.length == 13)
+  //           this.buttonFilterId = e.path[2].id
+  //         else
+  //           this.buttonFilterId = e.path[1].id
+  //       })
+  //     })
 
-    }
-  }
+  //   }
+  // }
 
   setText(index): string {
     if (index == 0)

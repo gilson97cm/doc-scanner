@@ -2,7 +2,7 @@
 @import url("./css/eqstyle.css");
 
 
-button[name="exit"],
+/* button[name="exit"],
 button[name="rotate"],
 button[name="done_crop"],
 button[name="back"],
@@ -10,19 +10,24 @@ button[name="filter"],
 button[name="upload"]
 {
   display: none;
-}
+} */
 /* DISABLE REFRESH CHROME */
 
 body {
-  /* height: auto;
-  position: fixed; */
+
   overscroll-behavior: contain;
-  /* overflow-x: hidden; */
   width:100%;
-	/* height:1000px; */
 	float:left;
 	margin:0;
-  /* background-color: red; */
 }
 
 /* END DISABLE REFRESH CHROME */
+
+/* canvas {
+  image-rendering: optimizeSpeed;             
+  image-rendering: -moz-crisp-edges;        
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: -o-crisp-edges;         
+  image-rendering: crisp-edges;             
+  -ms-interpolation-mode: nearest-neighbor;
+} */
