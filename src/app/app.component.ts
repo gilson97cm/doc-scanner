@@ -22,8 +22,8 @@ export class AppComponent implements AfterViewInit, OnInit {
   @ViewChild("video")
   public video: ElementRef;
 
-  @ViewChild("canvas")
-  public canvas: ElementRef;
+  // @ViewChild("canvas")
+  // public canvas: ElementRef;
 
   @ViewChild('dropListContainer')
   public dropListContainer: ElementRef;
@@ -37,8 +37,8 @@ export class AppComponent implements AfterViewInit, OnInit {
   captures: Capture[];
 
   hasDevices: boolean;
-  emptyDevice: MediaDeviceInfo;
-  deviceCurrent: MediaDeviceInfo;
+  // emptyDevice: MediaDeviceInfo;
+  // deviceCurrent: MediaDeviceInfo;
 
   isCaptured: boolean;
 
@@ -50,7 +50,7 @@ export class AppComponent implements AfterViewInit, OnInit {
 
   deviceSelected: string;
   deviceSelectedTemp: string;
-  availableDevices: MediaDeviceInfo[];
+  // availableDevices: MediaDeviceInfo[];
   stream: any = null;
 
   urlOriginal: string
@@ -119,21 +119,21 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.isEnabledCancel = true
     this.captures = [];
 
-    this.emptyDevice = {
-      deviceId: '',
-      groupId: '',
-      kind: null,
-      label: '',
-      toJSON: null
-    }
-    this.deviceCurrent = this.emptyDevice
+    // this.emptyDevice = {
+    //   deviceId: '',
+    //   groupId: '',
+    //   kind: null,
+    //   label: '',
+    //   toJSON: null
+    // }
+    // this.deviceCurrent = this.emptyDevice
     this.isCaptured = false;
 
 
     this.WIDTH = 0//640;
     this.HEIGHT = 0// 480;
 
-    this.availableDevices = []
+    // this.availableDevices = []
 
     this.config = {
       editorBackgroundColor: '#fefefe',
@@ -323,9 +323,9 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.captureEditing = null
     this.deviceSelectedTemp = ''
     this.deviceSelected = ''
-    this.deviceCurrent = this.emptyDevice
-    this.deviceSelected = this.deviceCurrent.deviceId
-    await this.onDeviceSelectChange('')
+    // this.deviceCurrent = this.emptyDevice
+    // this.deviceSelected = this.deviceCurrent.deviceId
+    // await this.onDeviceSelectChange('')
   }
 
   // async getPermissions() {
@@ -361,52 +361,52 @@ export class AppComponent implements AfterViewInit, OnInit {
 
   // }
 
-  async onDeviceSelectChange(selected: string) {
-    try {
-      this.video.nativeElement.srcObject = null;
-      this.video.nativeElement.stop();
-      this.error = null;
-    } catch (error) {
-      this.error = error
-    }
+  // async onDeviceSelectChange(selected: string) {
+  //   try {
+  //     this.video.nativeElement.srcObject = null;
+  //     this.video.nativeElement.stop();
+  //     this.error = null;
+  //   } catch (error) {
+  //     this.error = error
+  //   }
 
-    const selectedStr = selected || '';
-    this.deviceSelected = selectedStr;
-    const device = this.availableDevices.find(x => x.deviceId === selectedStr);
-    this.deviceCurrent = device || this.emptyDevice;
-    if (selectedStr != '') {
-      try {
-        if (this.stream) {
-          this.stream.getTracks().forEach(t => {
-            t.stop();
-            this.stream.removeTrack(t);
-          });
-        }
-        this.stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            deviceId: this.deviceCurrent.deviceId,
-            width: { ideal: this.RESOLUTION_WIDTH },
-            height: { ideal: this.RESOLUTION_HEIGHT }
-          }
-        })
+  //   const selectedStr = selected || '';
+  //   this.deviceSelected = selectedStr;
+  //   const device = this.availableDevices.find(x => x.deviceId === selectedStr);
+  //   this.deviceCurrent = device || this.emptyDevice;
+  //   if (selectedStr != '') {
+  //     try {
+  //       if (this.stream) {
+  //         this.stream.getTracks().forEach(t => {
+  //           t.stop();
+  //           this.stream.removeTrack(t);
+  //         });
+  //       }
+  //       this.stream = await navigator.mediaDevices.getUserMedia({
+  //         video: {
+  //           deviceId: this.deviceCurrent.deviceId,
+  //           width: { ideal: this.RESOLUTION_WIDTH },
+  //           height: { ideal: this.RESOLUTION_HEIGHT }
+  //         }
+  //       })
 
-        if (this.stream) {
-          let stream_settings = this.stream.getVideoTracks()[0].getSettings();
-          this.WIDTH = stream_settings.width
-          this.HEIGHT = stream_settings.height
+  //       if (this.stream) {
+  //         let stream_settings = this.stream.getVideoTracks()[0].getSettings();
+  //         this.WIDTH = stream_settings.width
+  //         this.HEIGHT = stream_settings.height
 
-          this.video.nativeElement.srcObject = this.stream;
-          // this.video.nativeElement.stop();
-          this.video.nativeElement.play();
-          this.error = null;
-        }
+  //         this.video.nativeElement.srcObject = this.stream;
+  //         // this.video.nativeElement.stop();
+  //         this.video.nativeElement.play();
+  //         this.error = null;
+  //       }
 
-      } catch (e) {
-        this.error = e;
-      }
-    }
+  //     } catch (e) {
+  //       this.error = e;
+  //     }
+  //   }
 
-  }
+  // }
 
   // async capture() {
   //   // this.drawImageToCanvas(this.video.nativeElement);
@@ -432,11 +432,11 @@ export class AppComponent implements AfterViewInit, OnInit {
   // }
 
 
-  async drawImageToCanvas(image) {
-    const ctx = this.canvas.nativeElement
-      .getContext("2d")
-    await ctx.drawImage(image, 0, 0);
-  }
+  // async drawImageToCanvas(image) {
+  //   const ctx = this.canvas.nativeElement
+  //     .getContext("2d")
+  //   await ctx.drawImage(image, 0, 0);
+  // }
 
   dataURLtoFile(dataUrl, filename) {
     var arr = dataUrl.split(','),
@@ -517,7 +517,7 @@ export class AppComponent implements AfterViewInit, OnInit {
     const exitBtn = <HTMLButtonElement>document.querySelector('button[name="exit"]')
     exitBtn.click()
 
-    await this.onDeviceSelectChange(this.deviceSelectedTemp)
+    // await this.onDeviceSelectChange(this.deviceSelectedTemp)
 
 
     this.exitEditor()
