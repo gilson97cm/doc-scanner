@@ -13,6 +13,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 
 import { NgxDocumentScannerModule } from './modules/ngx-document-scanner/ngx-document-scanner.module';
 import { OpenCVConfig } from './modules/ngx-document-scanner/PublicModels';
+import { WebcamModule } from './modules/webcam/webcam.module';
 
 
 const openCvConfig: OpenCVConfig = {
@@ -31,7 +32,8 @@ const openCvConfig: OpenCVConfig = {
     NgxDocumentScannerModule.forRoot(openCvConfig),
     BrowserAnimationsModule,
     CommonModule,
-    DragDropModule
+    DragDropModule,
+    WebcamModule
   ],
   providers: [],
   bootstrap: [AppComponent]

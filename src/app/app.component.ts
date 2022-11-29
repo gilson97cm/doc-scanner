@@ -1,4 +1,5 @@
-import { Component, Sanitizer } from '@angular/core';
+import { Observable, Subject } from 'rxjs';
+import { Component, Sanitizer, OnInit } from '@angular/core';
 // import { DocScannerConfig } from 'src/lib/ngx-document-scanner';
 import { ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { Capture } from './models/Capture';
@@ -6,6 +7,9 @@ import jsPDF from 'jspdf';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { CdkDragDrop, CdkDragEnter, CdkDragMove, moveItemInArray } from '@angular/cdk/drag-drop';
 import { DocScannerConfig } from './modules/ngx-document-scanner/PublicModels';
+import { WebcamImage } from './modules/webcam/domain/webcam-image';
+import { WebcamUtil } from './modules/webcam/util/webcam.util';
+import { WebcamInitError } from './modules/webcam/domain/webcam-init-error';
 
 @Component({
   selector: 'app-root',
@@ -13,7 +17,7 @@ import { DocScannerConfig } from './modules/ngx-document-scanner/PublicModels';
   styleUrls: ['./app.component.css']
 })
 
-export class AppComponent implements AfterViewInit {
+export class AppComponent implements AfterViewInit, OnInit {
   //#region VARIABLES
   @ViewChild("video")
   public video: ElementRef;
@@ -87,6 +91,25 @@ export class AppComponent implements AfterViewInit {
   IS_SAFARI: boolean
   //#endregion
 
+
+  //#region WEBCAM
+  public showWebcam = true;
+  public allowCameraSwitch = true;
+  public multipleWebcamsAvailable = false;
+  public deviceIdWC: string;
+  public facingMode: string = 'environment';
+  public messages: any[] = [];
+
+  // latest snapshot
+  public webcamImage: WebcamImage = null;
+
+  // webcam snapshot trigger
+  private trigger: Subject<void> = new Subject<void>();
+  // switch to next / previous / specific webcam; true/false: forward/backwards, string: deviceId
+  private nextWebcam: Subject<boolean | string> = new Subject<boolean | string>();
+  //#endregion
+
+
   constructor(private sanitizer_: DomSanitizer) {
     this.IS_FIREFOX = navigator.userAgent.indexOf("Firefox") != -1
     this.IS_SAFARI = navigator.userAgent.indexOf("Safari") != -1
@@ -156,18 +179,126 @@ export class AppComponent implements AfterViewInit {
     this.isDownloadAll = false
   }
 
-  onInit() {
-    window.addEventListener("beforeunload", function (e) {
-      var confirmationMessage = "\o/";
-      e.returnValue = confirmationMessage;
-      return confirmationMessage;
-    });
+  async ngOnInit() {
+    // window.addEventListener("beforeunload", function (e) {
+    //   var confirmationMessage = "\o/";
+    //   e.returnValue = confirmationMessage;
+    //   return confirmationMessage;
+    // });
+    this.readAvailableVideoInputs();
+    await this.getDeviceDimensions()
   }
 
   async ngAfterViewInit() {
-    await this.getPermissions()
-    this.onCamerasFound()
+    // await this.getPermissions()
+    // this.onCamerasFound()
+
   }
+
+  async getDeviceDimensions() {
+    let device = await navigator.mediaDevices.getUserMedia({
+      video: {
+        deviceId: this.deviceIdWC,
+        width: { ideal: this.RESOLUTION_WIDTH },
+        height: { ideal: this.RESOLUTION_HEIGHT }
+      }
+    })
+    let stream_settings = device.getVideoTracks()[0].getSettings();
+    this.WIDTH = stream_settings.width
+    this.HEIGHT = stream_settings.height
+  }
+
+  private readAvailableVideoInputs() {
+    WebcamUtil.getAvailableVideoInputs()
+      .then((mediaDevices: MediaDeviceInfo[]) => {
+        this.multipleWebcamsAvailable = mediaDevices && mediaDevices.length > 1;
+      });
+  }
+
+  public triggerSnapshot(): void {
+    this.trigger.next();
+  }
+
+  //#region WEBCAM
+  // toggle webcam on/off
+
+
+
+  public toggleWebcam(): void {
+    this.showWebcam = !this.showWebcam;
+  }
+
+  public handleInitError(error: WebcamInitError): void {
+    this.messages.push(error);
+    if (error.mediaStreamError && error.mediaStreamError.name === 'NotAllowedError') {
+      this.addMessage('User denied camera access');
+    }
+  }
+
+  public showNextWebcam(directionOrDeviceId: boolean | string): void {
+    // true => move forward through devices
+    // false => move backwards through devices
+    // string => move to device with given deviceId
+    this.nextWebcam.next(directionOrDeviceId);
+  }
+
+  public async handleImage(webcamImage: WebcamImage) {
+    this.addMessage('Received webcam image');
+    console.log(webcamImage);
+    this.webcamImage = webcamImage;
+
+    // const blob_ = this.b64toBlob(webcamImage.imageAsDataUrl)
+    // console.log("🚀 ~ ~ handleImage ~  blob_",  blob_)
+
+    // const ctx = this.canvas.nativeElement.getContext("2d")
+    // await ctx.drawImage(webcamImage.imageAsDataUrl, 0, 0);
+    // ctx.imageSmoothingEnabled = false
+
+    // let imageBase64 = this.canvas.nativeElement.toDataURL('image/jpeg')
+    const blob = this.b64toBlob(webcamImage.imageAsDataUrl)
+
+    this.urlOriginal = URL.createObjectURL(blob)
+    let date = new Date().getTime()
+    let filename: string = String(date)
+    var file = this.dataURLtoFile(webcamImage.imageAsDataUrl, `${filename}.jpeg`)
+    this.imageFull = webcamImage.imageAsDataUrl
+    this.loadFile(file)
+    this.isCaptured = true;
+    this.isEditing = true;
+
+  }
+
+  public cameraWasSwitched(deviceId: string): void {
+    this.addMessage('Active device: ' + deviceId);
+    this.deviceIdWC = deviceId;
+    this.readAvailableVideoInputs();
+  }
+
+  addMessage(message: any): void {
+    console.log(message);
+    this.messages.unshift(message);
+  }
+
+  public get triggerObservable(): Observable<void> {
+    return this.trigger.asObservable();
+  }
+
+  public get nextWebcamObservable(): Observable<boolean | string> {
+    return this.nextWebcam.asObservable();
+  }
+
+  public get videoOptions(): MediaTrackConstraints {
+    const result: MediaTrackConstraints = {};
+    if (this.facingMode && this.facingMode !== '') {
+      result.facingMode = { ideal: this.facingMode };
+    }
+
+    return result;
+  }
+
+
+  //#endregion
+
 
   openCamera() {
     this.isEnabledButton = true
@@ -197,38 +328,38 @@ export class AppComponent implements AfterViewInit {
     await this.onDeviceSelectChange('')
   }
 
-  async getPermissions() {
-    await navigator.mediaDevices.getUserMedia({
-      video: {
-        width: { ideal: this.RESOLUTION_WIDTH },
-        height: { ideal: this.RESOLUTION_HEIGHT }
-      }
-    })
-      .then(success => this.onHasPermission(true))
-      .catch(err => this.onHasPermission(false))
-  }
+  // async getPermissions() {
+  //   await navigator.mediaDevices.getUserMedia({
+  //     video: {
+  //       width: { ideal: this.RESOLUTION_WIDTH },
+  //       height: { ideal: this.RESOLUTION_HEIGHT }
+  //     }
+  //   })
+  //     .then(success => this.onHasPermission(true))
+  //     .catch(err => this.onHasPermission(false))
+  // }
 
-  onHasPermission(has: boolean) {
-    this.hasPermission = has;
-  }
+  // onHasPermission(has: boolean) {
+  //   this.hasPermission = has;
+  // }
 
-  onCamerasFound() {
-    if (this.hasPermission && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices.enumerateDevices()
-        .then((devices) => {
-          devices.forEach((device) => {
-            if (String(device.kind) === 'videoinput') {
-              this.availableDevices.push(device);
-            }
-          })
-          this.hasDevices = Boolean(devices && devices.length);
-        })
-        .catch((err) => {
-          console.error(`${err.name}: ${err.message}`);
-        });
-    }
+  // onCamerasFound() {
+  //   if (this.hasPermission && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  //     navigator.mediaDevices.enumerateDevices()
+  //       .then((devices) => {
+  //         devices.forEach((device) => {
+  //           if (String(device.kind) === 'videoinput') {
+  //             this.availableDevices.push(device);
+  //           }
+  //         })
+  //         this.hasDevices = Boolean(devices && devices.length);
+  //       })
+  //       .catch((err) => {
+  //         console.error(`${err.name}: ${err.message}`);
+  //       });
+  //   }
 
-  }
+  // }
 
   async onDeviceSelectChange(selected: string) {
     try {
@@ -277,28 +408,28 @@ export class AppComponent implements AfterViewInit {
 
   }
 
-  async capture() {
-    // this.drawImageToCanvas(this.video.nativeElement);
+  // async capture() {
+  //   // this.drawImageToCanvas(this.video.nativeElement);
 
-    const ctx = this.canvas.nativeElement
-      .getContext("2d")
-    await ctx.drawImage(this.video.nativeElement, 0, 0);
-    ctx.imageSmoothingEnabled = false
+  //   const ctx = this.canvas.nativeElement
+  //     .getContext("2d")
+  //   await ctx.drawImage(this.video.nativeElement, 0, 0);
+  //   ctx.imageSmoothingEnabled = false
 
 
-    let imageBase64 = this.canvas.nativeElement.toDataURL('image/jpeg')
-    const blob = this.b64toBlob(imageBase64)
+  //   let imageBase64 = this.canvas.nativeElement.toDataURL('image/jpeg')
+  //   const blob = this.b64toBlob(imageBase64)
 
-    this.urlOriginal = URL.createObjectURL(blob)
-    let date = new Date().getTime()
-    let filename: string = String(date)
-    var file = this.dataURLtoFile(imageBase64, `${filename}.jpeg`)
-    this.imageFull = imageBase64
-    this.loadFile(file)
-    this.isCaptured = true;
-    this.isEditing = true;
+  //   this.urlOriginal = URL.createObjectURL(blob)
+  //   let date = new Date().getTime()
+  //   let filename: string = String(date)
+  //   var file = this.dataURLtoFile(imageBase64, `${filename}.jpeg`)
+  //   this.imageFull = imageBase64
+  //   this.loadFile(file)
+  //   this.isCaptured = true;
+  //   this.isEditing = true;
 
-  }
+  // }
 
 
   async drawImageToCanvas(image) {
