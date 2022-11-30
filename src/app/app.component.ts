@@ -37,8 +37,6 @@ export class AppComponent implements AfterViewInit, OnInit {
   captures: Capture[];
 
   hasDevices: boolean;
-  // emptyDevice: MediaDeviceInfo;
-  // deviceCurrent: MediaDeviceInfo;
 
   isCaptured: boolean;
 
@@ -50,7 +48,6 @@ export class AppComponent implements AfterViewInit, OnInit {
 
   deviceSelected: string;
   deviceSelectedTemp: string;
-  // availableDevices: MediaDeviceInfo[];
   stream: any = null;
 
   urlOriginal: string
@@ -65,13 +62,6 @@ export class AppComponent implements AfterViewInit, OnInit {
   captureModel: Capture
 
   doneCrop: boolean;
-
-  // EXIT: string
-  // ROTATE: string
-  // DONE_CROP: string
-  // BACK: string
-  // FILTER: string
-  // UPLOAD: string
 
   capturesTemp: Capture[]
 
@@ -109,6 +99,8 @@ export class AppComponent implements AfterViewInit, OnInit {
   private nextWebcam: Subject<boolean | string> = new Subject<boolean | string>();
   //#endregion
 
+  public version = '1.0.3'
+
 
   constructor(private sanitizer_: DomSanitizer) {
     this.IS_FIREFOX = navigator.userAgent.indexOf("Firefox") != -1
@@ -119,21 +111,11 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.isEnabledCancel = true
     this.captures = [];
 
-    // this.emptyDevice = {
-    //   deviceId: '',
-    //   groupId: '',
-    //   kind: null,
-    //   label: '',
-    //   toJSON: null
-    // }
-    // this.deviceCurrent = this.emptyDevice
     this.isCaptured = false;
 
 
     this.WIDTH = 0//640;
-    this.HEIGHT = 0// 480;
-
-    // this.availableDevices = []
+    this.HEIGHT = 0//480;
 
     this.config = {
       editorBackgroundColor: '#fefefe',
@@ -163,13 +145,6 @@ export class AppComponent implements AfterViewInit, OnInit {
 
     this.doneCrop = false
 
-    // this.EXIT = 'exit'
-    // this.ROTATE = 'rotate'
-    // this.DONE_CROP = 'done_crop'
-
-    // this.BACK = 'back'
-    // this.FILTER = 'filter'
-    // this.UPLOAD = 'upload'
 
     this.capturesTemp = []
 
@@ -179,26 +154,20 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.isDownloadAll = false
   }
 
-  async ngOnInit() {
-    // window.addEventListener("beforeunload", function (e) {
-    //   var confirmationMessage = "\o/";
-    //   e.returnValue = confirmationMessage;
-    //   return confirmationMessage;
-    // });
+ ngOnInit() {
     this.readAvailableVideoInputs();
-    await this.getDeviceDimensions()
+ 
   }
 
   async ngAfterViewInit() {
-    // await this.getPermissions()
-    // this.onCamerasFound()
 
+    // await this.getDeviceDimensions()
   }
 
-  async getDeviceDimensions() {
+  async getDeviceDimensions(deviceId:string) {
     let device = await navigator.mediaDevices.getUserMedia({
       video: {
-        deviceId: this.deviceIdWC,
+        deviceId: deviceId,
         width: { ideal: this.RESOLUTION_WIDTH },
         height: { ideal: this.RESOLUTION_HEIGHT }
       }
@@ -221,9 +190,6 @@ export class AppComponent implements AfterViewInit, OnInit {
 
   //#region WEBCAM
   // toggle webcam on/off
-
-
-
   public toggleWebcam(): void {
     this.showWebcam = !this.showWebcam;
   }
@@ -247,14 +213,6 @@ export class AppComponent implements AfterViewInit, OnInit {
     console.log(webcamImage);
     this.webcamImage = webcamImage;
 
-    // const blob_ = this.b64toBlob(webcamImage.imageAsDataUrl)
-    // console.log("🚀 ~ ~ handleImage ~  blob_",  blob_)
-
-    // const ctx = this.canvas.nativeElement.getContext("2d")
-    // await ctx.drawImage(webcamImage.imageAsDataUrl, 0, 0);
-    // ctx.imageSmoothingEnabled = false
-
-    // let imageBase64 = this.canvas.nativeElement.toDataURL('image/jpeg')
     const blob = this.b64toBlob(webcamImage.imageAsDataUrl)
 
     this.urlOriginal = URL.createObjectURL(blob)
@@ -268,7 +226,7 @@ export class AppComponent implements AfterViewInit, OnInit {
 
   }
 
-  public cameraWasSwitched(deviceId: string): void {
+  public cameraWasSwitched(deviceId: string) {
     this.addMessage('Active device: ' + deviceId);
     this.deviceIdWC = deviceId;
     this.readAvailableVideoInputs();
