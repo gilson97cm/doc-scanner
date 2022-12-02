@@ -1,5 +1,5 @@
 import { Observable, Subject } from 'rxjs';
-import { Component, Sanitizer, OnInit } from '@angular/core';
+import { Component, Sanitizer, OnInit, OnChanges } from '@angular/core';
 // import { DocScannerConfig } from 'src/lib/ngx-document-scanner';
 import { ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { Capture } from './models/Capture';
@@ -99,7 +99,9 @@ export class AppComponent implements AfterViewInit, OnInit {
   private nextWebcam: Subject<boolean | string> = new Subject<boolean | string>();
   //#endregion
 
-  public version = '1.0.3'
+  public version = '1.0.30'
+
+  public devices:MediaDeviceInfo[] = []
 
 
   constructor(private sanitizer_: DomSanitizer) {
@@ -114,8 +116,8 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.isCaptured = false;
 
 
-    this.WIDTH = 0//640;
-    this.HEIGHT = 0//480;
+    this.WIDTH = 0;//640;
+    this.HEIGHT = 0;//480;
 
     this.config = {
       editorBackgroundColor: '#fefefe',
@@ -154,28 +156,53 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.isDownloadAll = false
   }
 
- ngOnInit() {
+  ngOnInit() {
     this.readAvailableVideoInputs();
- 
+
   }
 
   async ngAfterViewInit() {
-
     // await this.getDeviceDimensions()
+    navigator.mediaDevices.enumerateDevices()
+    .then((devices) => {
+      this.devices = devices //JSON.stringify(devices)
+      console.log("🚀 ~ .then ~ devices", devices)
+      // devices.forEach((device) => {
+      //   // if (String(device.kind) === 'videoinput') {
+      //   //   this.availableDevices.push(device);
+      //   // }
+      // })
+      // this.hasDevices = Boolean(devices && devices.length);
+    })
+    .catch((err) => {
+      console.error(`${err.name}: ${err.message}`);
+    });
   }
 
-  async getDeviceDimensions(deviceId:string) {
-    let device = await navigator.mediaDevices.getUserMedia({
-      video: {
-        deviceId: deviceId,
-        width: { ideal: this.RESOLUTION_WIDTH },
-        height: { ideal: this.RESOLUTION_HEIGHT }
-      }
-    })
-    let stream_settings = device.getVideoTracks()[0].getSettings();
-    this.WIDTH = stream_settings.width
-    this.HEIGHT = stream_settings.height
-  }
+
+  // async getDeviceDimensions() {
+  //   // return new Promise<void>(async (resolve, reject) => {
+  //   try {
+  //     const stream = await navigator.mediaDevices.getUserMedia({
+  //       video: {
+  //         deviceId: this.deviceIdWC,
+  //         width: { ideal: this.RESOLUTION_WIDTH },
+  //         height: { ideal: this.RESOLUTION_HEIGHT }
+  //       }
+  //     })
+  //     let stream_settings = stream.getVideoTracks()[0].getSettings();
+  //     this.WIDTH = stream_settings.width
+  //     this.HEIGHT = stream_settings.height
+  //   } catch (error) {
+  //     console.log("🚀 ~ error", error)
+
+  //   }
+
+  //   console.log("🚀 this.WIDTH", this.WIDTH)
+  //   console.log("🚀 this.HEIGHT", this.HEIGHT)
+  //   // })
+
+  // }
 
   private readAvailableVideoInputs() {
     WebcamUtil.getAvailableVideoInputs()
@@ -210,8 +237,16 @@ export class AppComponent implements AfterViewInit, OnInit {
 
   public async handleImage(webcamImage: WebcamImage) {
     this.addMessage('Received webcam image');
-    console.log(webcamImage);
+    // console.log(webcamImage);
     this.webcamImage = webcamImage;
+
+    // let c = <HTMLCanvasElement>document.querySelector('#cv')
+    // const ct = c.getContext('2d')
+    // var im = new Image()
+    // im.onload = function () {
+    //   ct.drawImage(im, 0, 0)
+    // }
+    // im.src = webcamImage.imageAsDataUrl
 
     const blob = this.b64toBlob(webcamImage.imageAsDataUrl)
 
@@ -226,7 +261,7 @@ export class AppComponent implements AfterViewInit, OnInit {
 
   }
 
-  public cameraWasSwitched(deviceId: string) {
+  public async cameraWasSwitched(deviceId: string) {
     this.addMessage('Active device: ' + deviceId);
     this.deviceIdWC = deviceId;
     this.readAvailableVideoInputs();
@@ -263,6 +298,8 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.isCameraOpen = true
     this.isGalleryOpen = false
     this.isEnabledCancel = false
+    // const fileCamera = <HTMLInputElement>document.querySelector('#fileCamera')
+    // fileCamera.click()
   }
 
   openGallery() {
@@ -675,8 +712,8 @@ export class AppComponent implements AfterViewInit, OnInit {
     if (event.target.files.item(0)) {
       const file = event.target.files.item(0);
       if (this.isImage(file)) {
-        let imageBase64 = await this.blobToBase64(URL.createObjectURL(file))
-        this.imageFull = String(imageBase64);
+        // let imageBase64 = await this.blobToBase64(URL.createObjectURL(file))
+        this.imageFull =''// String(imageBase64);
         this.loadFile(file);
       } else {
         this.overZone = false;

@@ -3,50 +3,65 @@
 
 <div class="marg-top5 panel-body">
   <span><small>version:({{ version }})</small></span>
+  <!-- <span><small>Device Active: {{ deviceIdWC }} </small></span>
+
+  <ul>
+    <li *ngFor="let d of devices"> {{ d.deviceId  }} - {{ d.label }} - {{ d.kind }}</li>
+  </ul> -->
+  <!-- <input type="file" accept="image/*" capture="environment"> -->
     <!--BUTTONS  -->
     <div class="form-row" >
       <div class="form-item">
     
-        <button class="text-button marg-left-butt10 marg-top10 text-uppercase" (click)="openCamera()" 
-        *ngIf="!isEnabledButton">Camera</button>
+        <button class="text-button marg-left-butt10 marg-top10 text-uppercase" (click)="fileCamera.click()" 
+        *ngIf="!isEditing && !isEnabledButton">Camera</button>
+        <!-- <button class="text-button marg-left-butt10 marg-top10 text-uppercase" (click)="openCamera()" 
+        *ngIf="!isEditing && !isEnabledButton">Camera</button> -->
         <button class="text-button marg-left-butt10 marg-top10 text-uppercase" (click)="openGallery()" 
-        *ngIf="!isEnabledButton">Gallery</button>
+        *ngIf="!isEditing && !isEnabledButton">Gallery</button>
         <button style="z-index: 999;" class="text-button marg-left-butt10  marg-top10  red text-uppercase" (click)="onCancel()" 
-        *ngIf="!isEnabledCancel">Cancel</button>
+        *ngIf="isEditing || !isEnabledCancel">Cancel</button>
         <!-- <button class="text-button marg-left-butt10 marg-top10 green text-uppercase" (click)="downloadPdf()" 
         [disabled]="captures.length <= 0" >Create PDF with {{ captures.length }} images</button> -->
       </div>
     </div>
     <!-- END BUTTONS -->
 
-    <div *ngIf="isCameraOpen && !isEditing">
-      <webcam 
-      [height]="HEIGHT"
-      [width]="WIDTH" 
-      [trigger]="triggerObservable" 
-      (imageCapture)="handleImage($event)" 
-      [allowCameraSwitch]="allowCameraSwitch" 
-      [switchCamera]="nextWebcamObservable"
-      [videoOptions]="videoOptions"
-      [imageQuality]="1"
-      (cameraSwitched)="cameraWasSwitched($event)"
-      (initError)="handleInitError($event)"
-      ></webcam>
-      <br>
-      <button class="text-button marg-top10 text-uppercase" (click)="triggerSnapshot()">
-        <i class="fa fa-camera fa-2x"></i>&nbsp;Take Photo
-       </button>
-       <br>
-       <!-- <canvas
-       style="background-color: red;"
-       [class.show]="isCaptured"
-       [class.hide]="!isCaptured"
-       #canvas
-       id="canvas"
-       [width]="WIDTH"
-       [height]="HEIGHT"
-     ></canvas> -->
-    </div>
+
+      <!-- <div *ngIf="isCameraOpen && !isEditing"> -->
+        <div>
+
+        <input type="file" 
+        #fileCamera
+        name="fileCamera" 
+        id="fileCamera" 
+        capture="environment"
+        (change)="selectFile($event)"  
+        eq-choose-file-drct="" 
+        accept="image/*" 
+        class="ng-isolate-scope">
+
+        <!-- <webcam 
+        [height]="500"
+        [width]="500" 
+        [trigger]="triggerObservable" 
+        (imageCapture)="handleImage($event)" 
+        [allowCameraSwitch]="allowCameraSwitch" 
+        [switchCamera]="nextWebcamObservable"
+        [videoOptions]="videoOptions"
+        [imageQuality]="1"
+        (cameraSwitched)="cameraWasSwitched($event)"
+        (initError)="handleInitError($event)"
+        ></webcam>
+       
+      
+        <br>
+        <button class="text-button marg-top10 text-uppercase" (click)="triggerSnapshot()">
+          <i class="fa fa-camera fa-2x"></i>&nbsp;Take Photo
+         </button> -->
+
+      </div>
+
 
         <!-- GALLERY -->
         <div class="form-row"  *ngIf="isGalleryOpen">
@@ -55,14 +70,26 @@
               <input type="text" id="filename" name="filename" class="file-input-textbox" readonly="readonly" ng-class="{'error-field' : ctrl.uploadedFile.id == null &amp;&amp; ctrl.form.$submitted &amp;&amp; (ctrl.form.$invalid) }">
       
               <button class="text-button-file-input" id="fileInputButton">Select File</button>
-              <input type="file" name="filename3" id="filename3" (change)="selectFile($event)"  eq-choose-file-drct="" accept="" data-changed="ctrl.upload(files)" ng-disabled="ctrl.isFileUploading" onchange="document.getElementById('filename').value = this.value" onmouseover="document.getElementById('fileInputButton').className='text-button-file-input';" onmouseout="document.getElementById('fileInputButton').className='text-button-file-input';" class="ng-isolate-scope">
+              <input type="file" 
+              name="filename3" 
+              id="filename3" 
+              capture="environment"
+              (change)="selectFile($event)"  
+              eq-choose-file-drct="" 
+              accept="" 
+              data-changed="ctrl.upload(files)" 
+              ng-disabled="ctrl.isFileUploading" 
+              onchange="document.getElementById('filename').value = this.value" 
+              onmouseover="document.getElementById('fileInputButton').className='text-button-file-input';" 
+              onmouseout="document.getElementById('fileInputButton').className='text-button-file-input';" 
+              class="ng-isolate-scope">
           </div>
           </div>
         </div>
         <!-- END GALLERY -->
 
       <!-- EDITOR -->
-  <div class="form-row marg-top15 marg-bott15"  *ngIf="image && isEditing" style="position: fixed;">
+  <div  class="form-row marg-top15 marg-bott15"  *ngIf="image && isEditing" style="position: fixed;">
     <div class="form-item">
       <div class="fl-grid-item-row">
        <div class="form-row">
@@ -73,15 +100,6 @@
       </div>
       <div class="fl-grid-item-row">
         <div class="fl-grid-item fl-item-half marg-top15">
-          <!-- <ngx-doc-scanner 
-          id="scanner"
-          [file]="image"
-          (editResult)="editResult($event)"
-          (exitEditor)="exitEditor()"
-          (error)="onError($event)"
-          (processing)="editorState($event)"
-          [config]="config">
-        </ngx-doc-scanner> -->
         <app-image-editor 
         id="scanner"
         [file]="image"
@@ -155,6 +173,8 @@
  
 <!-- END IMAGES LIST -->
 </div>
+
+<!-- <img [src]="webcamImage?.imageAsDataUrl" alt="webcam image"> -->
 
 
 

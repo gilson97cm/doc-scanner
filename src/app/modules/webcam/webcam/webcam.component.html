@@ -1,10 +1,11 @@
 <div class="webcam-wrapper" (click)="imageClick.next();">
   <video #video 
-  width="100%" 
-  height="100%" 
+  [width]="videoWidth" 
+  [height]="videoHeight" 
   [class]="videoStyleClasses" 
   autoplay muted playsinline 
-  (resize)="videoResize()"></video>
+  (resize)="videoResize()"
+ ></video>
   <div class="camera-switch" 
   *ngIf="allowCameraSwitch && availableVideoInputs.length > 1 && videoInitialized" 
   (click)="rotateVideoInput(true)">

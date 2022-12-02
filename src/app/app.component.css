@@ -114,6 +114,8 @@ button {
   flex-direction: row;
 }
 
-
+#fileCamera{
+  display: none;
+}
 
 

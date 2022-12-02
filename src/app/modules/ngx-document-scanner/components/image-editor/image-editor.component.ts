@@ -259,6 +259,7 @@ export class ImageEditorComponent implements OnInit {
         const ctx = this.editedImage.getContext('2d');
         ctx.imageSmoothingEnabled = false
         ctx?.drawImage(img, 0, 0);
+        console.log("🚀 ~ editedImage", this.editedImage)
         // resize image if larger than max image size
         const width = img.width > img.height ? img.height : img.width;
         if (width > this.options.maxImageDimensions.width) {
