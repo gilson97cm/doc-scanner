@@ -1,7 +1,7 @@
 
 
 
-<div class="marg-top5 panel-body">
+<div class="marg-top5 panel-body" [ngClass]="{'no-scroll':isEditing}">
   <span><small>version:({{ version }})</small></span>
   <!-- <span><small>Device Active: {{ deviceIdWC }} </small></span>
 
@@ -104,12 +104,10 @@
         id="scanner"
         [file]="image"
         (editResult)="editResult($event)"
-        (exitEditor)="exitEditor()"
+        (exitEditor)="closeEditor()"
         (error)="onError($event)"
         (processing)="editorState($event)"
-        [config]="config"
-        [stream_width]="WIDTH"
-        [stream_height]="HEIGHT">
+        [config]="config">
       </app-image-editor>
         </div>
       </div>

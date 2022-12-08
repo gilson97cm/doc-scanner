@@ -21,9 +21,6 @@ export class ImageEditorComponent implements OnInit {
   @Output() ready: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() processing: EventEmitter<boolean> = new EventEmitter<boolean>();
 
-  @Input() stream_width: number
-  @Input() stream_height: number
-
   @Input() set file(file: File) {
     if (file) {
       setTimeout(() => {
@@ -41,17 +38,17 @@ export class ImageEditorComponent implements OnInit {
         });
     }
   }
-  @Input() config: DocScannerConfig;
+  @Input() config: DocScannerConfig = {} as DocScannerConfig;
 
   @ViewChild('PreviewCanvas', { read: ElementRef })
   private previewCanvas: ElementRef = {} as ElementRef
 
   public options: ImageEditorConfig = new ImageEditorConfig({})
-  public imageDivStyle: { [key: string]: string | number };
-  public editorStyle: { [key: string]: string | number };
+  public imageDivStyle: any// { [key: string]: string | number };
+  public editorStyle: any// { [key: string]: string | number };
   public imageLoaded = false;
   public mode: 'crop' | 'color' = 'crop';
-  public previewDimensions: ImageDimensions;
+  public previewDimensions: ImageDimensions = {} as ImageDimensions;
 
   private editorButtons: Array<EditorActionButton> = [
     {
@@ -72,7 +69,7 @@ export class ImageEditorComponent implements OnInit {
       type: 'fab',
       mode: 'crop',
       text: 'Rotate Right',
-      color:'primary'
+      color: 'primary'
     },
     {
       name: 'done_crop',
@@ -85,7 +82,7 @@ export class ImageEditorComponent implements OnInit {
       type: 'fab',
       mode: 'crop',
       text: 'Done',
-      color:'primary'
+      color: 'primary'
     },
     {
       name: 'back',
@@ -97,7 +94,7 @@ export class ImageEditorComponent implements OnInit {
       type: 'fab',
       mode: 'color',
       text: 'Back',
-      color:'primary'
+      color: 'primary'
     },
     // {
     //   name: 'filter',
@@ -117,16 +114,16 @@ export class ImageEditorComponent implements OnInit {
       type: 'fab',
       mode: 'color',
       text: 'Save',
-      color:'green'
+      color: 'green'
     },
   ];
-  private maxPreviewWidth: number;
+  private maxPreviewWidth: number = 0;
   private cvState: string = '';
   private selectedFilter = 'original';
   private screenDimensions: ImageDimensions;
   private imageDimensions: ImageDimensions = {
-    width: 4096,
-    height: 2160
+    width: 0,
+    height: 0
   };
   private imageResizeRatio: number = 0;
   private originalImage: File = {} as File;
@@ -215,18 +212,45 @@ export class ImageEditorComponent implements OnInit {
   private loadFile(file: File) {
     return new Promise<void>(async (resolve, reject) => {
       this.processing.emit(true);
-      try {
-        await this.readImage(file);
-      } catch (err) {
-        console.error(err);
-        this.error.emit(new Error(err));
+      // try {
+      //   await this.readImage(file);
+      // } catch (err) {
+      //   console.error(err);
+      //   this.error.emit(new Error(err));
+      // }
+      // try {
+      //   await this.showPreview();
+      // } catch (err) {
+      //   console.error(err);
+      //   this.error.emit(new Error(err));
+      // }
+
+  
+      let imgSrc = '';
+      if (file) {
+        imgSrc = window.URL.createObjectURL(file);
       }
-      try {
-        await this.showPreview();
-      } catch (err) {
-        console.error(err);
-        this.error.emit(new Error(err));
+      const img = new Image();
+      // let that = this
+      img.onload = () => {
+
+        this.editedImage = <HTMLCanvasElement>document.createElement('canvas');
+        this.editedImage.width = img.width;
+        this.editedImage.height = img.height;
+        const ctx = this.editedImage.getContext('2d');
+        ctx?.drawImage(img, 0, 0);
+
+
+        const canvas = this.previewCanvas.nativeElement
+        const context = canvas.getContext("2d", { willReadFrequently: true } );
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        this.previewDimensions = this.calculateDimensions(img.width, img.height);
+        this.previewCanvas.nativeElement.width = this.previewDimensions.width;
+        this.previewCanvas.nativeElement.height = this.previewDimensions.height;
+        context.drawImage(img, 0, 0,this.previewDimensions.width, this.previewDimensions.height);
       }
+      img.src = imgSrc;
+
       // set pane limits
       // show points
       this.imageLoaded = true;
@@ -257,9 +281,7 @@ export class ImageEditorComponent implements OnInit {
         this.editedImage.width = img.width;
         this.editedImage.height = img.height;
         const ctx = this.editedImage.getContext('2d');
-        ctx.imageSmoothingEnabled = false
         ctx?.drawImage(img, 0, 0);
-        console.log("🚀 ~ editedImage", this.editedImage)
         // resize image if larger than max image size
         const width = img.width > img.height ? img.height : img.width;
         if (width > this.options.maxImageDimensions.width) {
@@ -559,8 +581,8 @@ export class ImageEditorComponent implements OnInit {
     this.imageDivStyle = {
       width: this.previewDimensions.width + this.options.cropToolDimensions.width + 'px',
       height: this.previewDimensions.height + this.options.cropToolDimensions.height + 'px',
-      'margin-left': `calc((100% - ${this.previewDimensions.width + 10}px) / 2 + ${this.options.cropToolDimensions.width / 2}px)`,
-      'margin-right': `calc((100% - ${this.previewDimensions.width + 10}px) / 2 - ${this.options.cropToolDimensions.width / 2}px)`,
+      'margin-left': `calc((100% - ${this.previewDimensions.width + 20}px) / 2 + ${this.options.cropToolDimensions.width / 2}px)`,
+      'margin-right': `calc((100% - ${this.previewDimensions.width + 20}px) / 2 - ${this.options.cropToolDimensions.width / 2}px)`,
     };
     this.limitsService.setPaneDimensions({ width: this.previewDimensions.width, height: this.previewDimensions.height });
   }
@@ -597,8 +619,8 @@ export class ImageEditorComponent implements OnInit {
 
 class ImageEditorConfig implements DocScannerConfig {
   maxImageDimensions: ImageDimensions = {
-    width: 4096,//800,
-    height: 2160//1200
+    width: 1080,
+    height: 1920
   };
 
   editorBackgroundColor = '#fefefe';
@@ -634,7 +656,7 @@ class ImageEditorConfig implements DocScannerConfig {
 
   cropToolLineWeight = 3;
 
-  maxPreviewWidth = 4096//800;
+  maxPreviewWidth = 1920;
 
   constructor(options: DocScannerConfig) {
     if (options) {

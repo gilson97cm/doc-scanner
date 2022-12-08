@@ -31,6 +31,7 @@ export class DraggablePointComponent implements AfterViewInit {
     Object.keys(this.pointOptions).forEach(key => {
       this[key] = this.pointOptions[key];
     });
+
     // subscribe to pane dimensions changes
     this.limitsService.paneDimensions.subscribe(dimensions => {
       if (dimensions.width > 0 && dimensions.width > 0) {
@@ -59,7 +60,7 @@ export class DraggablePointComponent implements AfterViewInit {
       height: this.height + 'px',
       'background-color': this.color,
       'border-radius': this.shape === 'circle' ? '100%' : 0,
-      position: 'absolute'
+      position: 'absolute',
     };
   }
 

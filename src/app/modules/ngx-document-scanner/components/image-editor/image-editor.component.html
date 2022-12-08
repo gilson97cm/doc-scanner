@@ -1,41 +1,47 @@
 <div [ngStyle]="editorStyle" fxLayoutAlign="space-around" style="direction: ltr !important">
   <div #imageContainer [ngStyle]="imageDivStyle">
-      <ng-container *ngIf="imageLoaded && mode === 'crop'">
-        <app-shape-outline #shapeOutline [color]="options.cropToolColor" [weight]="options.cropToolLineWeight" [dimensions]="previewDimensions"></app-shape-outline>
-        <app-draggable-point #topLeft [pointOptions]="options.pointOptions" [startPosition]="{x: 0, y: 0}" [limitRoles]="['top', 'left']" [container]="imageContainer"></app-draggable-point>
-        <app-draggable-point #topRight [pointOptions]="options.pointOptions" [startPosition]="{x: previewDimensions.width, y: 0}" [limitRoles]="['top', 'right']" [container]="imageContainer"></app-draggable-point>
-        <app-draggable-point #bottomLeft [pointOptions]="options.pointOptions" [startPosition]="{x: 0, y: previewDimensions.height}" [limitRoles]="['bottom', 'left']" [container]="imageContainer"></app-draggable-point>
-        <app-draggable-point #bottomRight [pointOptions]="options.pointOptions" [startPosition]="{x: previewDimensions.width, y: previewDimensions.height}" [limitRoles]="['bottom', 'right']" [container]="imageContainer"></app-draggable-point>
-      </ng-container>
-      <canvas #PreviewCanvas 
-      [ngStyle]="{'max-width': options.maxPreviewWidth}" 
-      style="z-index: 5" ></canvas>
-    </div>
-
-    <div class="editor-actions" fxLayout="row" fxLayoutAlign="space-around" style="position: fixed; bottom: 0; width: 100vw;">
-      <ng-container *ngFor="let button of displayedButtons" [ngSwitch]="button.type">
-        <!-- <button  *ngSwitchCase="'fab'" type="button" class="btn  btn-{{ button.color }} mb-2 p-1" [name]="button.name" (click)="button.action()" >
-            <span class="icon-sm me-2">
-                <svg class="icon"><use  [attr.xlink:href]="'./assets/svg/svg.svg'+button.icon"></use></svg>
-            </span> 
-            <span>{{ button.text }}</span>
-        </button> -->
-        <button *ngSwitchCase="'fab'" type="button" class="text-button   marg-top10  {{ button.color }}" [name]="button.name" (click)="button.action()" >
-          <i class="fa fa-{{ button.icon }} fa-2x"></i> {{ button.text }}
-        </button>
-
-        <!-- <button *ngSwitchCase="'button'" type="button" class="btn  btn-{{ button.color }} mb-2 p-1" [name]="button.name" (click)="button.action()" >
-            <span class="icon-sm me-2">
-                <svg class="icon"><use  [attr.xlink:href]="'./assets/svg/svg.svg'+button.icon"></use></svg>
-            </span> 
-            <span>{{ button.text }}</span>
-        </button> -->
-        <button *ngSwitchCase="'button'" type="button" class="text-button   marg-top10  {{ button.color }}" [name]="button.name" (click)="button.action()" >
-          <i class="fa fa-{{ button.icon }} fa-2x"></i> {{ button.text }}
-        </button>
-      </ng-container>
-    </div>
+    <ng-container *ngIf="imageLoaded && mode === 'crop'">
+      <app-shape-outline #shapeOutline [color]="options.cropToolColor" [weight]="options.cropToolLineWeight"
+        [dimensions]="previewDimensions"></app-shape-outline>
+      <app-draggable-point #topLeft [pointOptions]="options.pointOptions" [startPosition]="{x: 0, y: 0}"
+        [limitRoles]="['top', 'left']" [container]="imageContainer"></app-draggable-point>
+      <app-draggable-point #topRight [pointOptions]="options.pointOptions"
+        [startPosition]="{x: previewDimensions.width, y: 0}" [limitRoles]="['top', 'right']"
+        [container]="imageContainer"></app-draggable-point>
+      <app-draggable-point #bottomLeft [pointOptions]="options.pointOptions"
+        [startPosition]="{x: 0, y: previewDimensions.height}" [limitRoles]="['bottom', 'left']"
+        [container]="imageContainer"></app-draggable-point>
+      <app-draggable-point #bottomRight [pointOptions]="options.pointOptions"
+        [startPosition]="{x: previewDimensions.width, y: previewDimensions.height}" [limitRoles]="['bottom', 'right']"
+        [container]="imageContainer"></app-draggable-point>
+    </ng-container>
+    <canvas #PreviewCanvas style="z-index: 5;" [width]="1920" [height]="1080"></canvas>
   </div>
-  
-  
-  
+
+  <div class="editor-actions" fxLayout="row" fxLayoutAlign="space-around"
+    style="position: fixed; bottom: 0; width: 100vw;">
+    <ng-container *ngFor="let button of displayedButtons" [ngSwitch]="button.type">
+      <!-- <button  *ngSwitchCase="'fab'" type="button" class="btn  btn-{{ button.color }} mb-2 p-1" [name]="button.name" (click)="button.action()" >
+            <span class="icon-sm me-2">
+                <svg class="icon"><use  [attr.xlink:href]="'./assets/svg/svg.svg'+button.icon"></use></svg>
+            </span> 
+            <span>{{ button.text }}</span>
+        </button> -->
+      <button *ngSwitchCase="'fab'" type="button" class="text-button   marg-top10  {{ button.color }}"
+        [name]="button.name" (click)="button.action()">
+        <i class="fa fa-{{ button.icon }} fa-2x"></i> {{ button.text }}
+      </button>
+
+      <!-- <button *ngSwitchCase="'button'" type="button" class="btn  btn-{{ button.color }} mb-2 p-1" [name]="button.name" (click)="button.action()" >
+            <span class="icon-sm me-2">
+                <svg class="icon"><use  [attr.xlink:href]="'./assets/svg/svg.svg'+button.icon"></use></svg>
+            </span> 
+            <span>{{ button.text }}</span>
+        </button> -->
+      <button *ngSwitchCase="'button'" type="button" class="text-button   marg-top10  {{ button.color }}"
+        [name]="button.name" (click)="button.action()">
+        <i class="fa fa-{{ button.icon }} fa-2x"></i> {{ button.text }}
+      </button>
+    </ng-container>
+  </div>
+</div>

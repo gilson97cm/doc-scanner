@@ -1,5 +1,5 @@
 import { Observable, Subject } from 'rxjs';
-import { Component, Sanitizer, OnInit, OnChanges } from '@angular/core';
+import { Component, Sanitizer, OnInit, OnChanges, Output, EventEmitter } from '@angular/core';
 // import { DocScannerConfig } from 'src/lib/ngx-document-scanner';
 import { ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { Capture } from './models/Capture';
@@ -18,9 +18,13 @@ import { WebcamInitError } from './modules/webcam/domain/webcam-init-error';
 })
 
 export class AppComponent implements AfterViewInit, OnInit {
+  @Output() exitEditor: EventEmitter<string> = new EventEmitter<string>();
   //#region VARIABLES
   @ViewChild("video")
   public video: ElementRef;
+
+  @ViewChild('PreviewCanvas', { read: ElementRef })
+  private previewCanvas: ElementRef = {} as ElementRef
 
   // @ViewChild("canvas")
   // public canvas: ElementRef;
@@ -99,7 +103,7 @@ export class AppComponent implements AfterViewInit, OnInit {
   private nextWebcam: Subject<boolean | string> = new Subject<boolean | string>();
   //#endregion
 
-  public version = '1.0.30'
+  public version = '1.0.36'
 
   public devices:MediaDeviceInfo[] = []
 
@@ -310,6 +314,7 @@ export class AppComponent implements AfterViewInit, OnInit {
   }
 
   async onCancel() {
+    this.image = null
     this.isGalleryOpen = false
     this.isCameraOpen = false
     this.isEnabledCancel = true
@@ -321,117 +326,10 @@ export class AppComponent implements AfterViewInit, OnInit {
     // this.deviceCurrent = this.emptyDevice
     // this.deviceSelected = this.deviceCurrent.deviceId
     // await this.onDeviceSelectChange('')
+    this.exitEditor.emit('canceled');
   }
 
-  // async getPermissions() {
-  //   await navigator.mediaDevices.getUserMedia({
-  //     video: {
-  //       width: { ideal: this.RESOLUTION_WIDTH },
-  //       height: { ideal: this.RESOLUTION_HEIGHT }
-  //     }
-  //   })
-  //     .then(success => this.onHasPermission(true))
-  //     .catch(err => this.onHasPermission(false))
-  // }
 
-  // onHasPermission(has: boolean) {
-  //   this.hasPermission = has;
-  // }
-
-  // onCamerasFound() {
-  //   if (this.hasPermission && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-  //     navigator.mediaDevices.enumerateDevices()
-  //       .then((devices) => {
-  //         devices.forEach((device) => {
-  //           if (String(device.kind) === 'videoinput') {
-  //             this.availableDevices.push(device);
-  //           }
-  //         })
-  //         this.hasDevices = Boolean(devices && devices.length);
-  //       })
-  //       .catch((err) => {
-  //         console.error(`${err.name}: ${err.message}`);
-  //       });
-  //   }
-
-  // }
-
-  // async onDeviceSelectChange(selected: string) {
-  //   try {
-  //     this.video.nativeElement.srcObject = null;
-  //     this.video.nativeElement.stop();
-  //     this.error = null;
-  //   } catch (error) {
-  //     this.error = error
-  //   }
-
-  //   const selectedStr = selected || '';
-  //   this.deviceSelected = selectedStr;
-  //   const device = this.availableDevices.find(x => x.deviceId === selectedStr);
-  //   this.deviceCurrent = device || this.emptyDevice;
-  //   if (selectedStr != '') {
-  //     try {
-  //       if (this.stream) {
-  //         this.stream.getTracks().forEach(t => {
-  //           t.stop();
-  //           this.stream.removeTrack(t);
-  //         });
-  //       }
-  //       this.stream = await navigator.mediaDevices.getUserMedia({
-  //         video: {
-  //           deviceId: this.deviceCurrent.deviceId,
-  //           width: { ideal: this.RESOLUTION_WIDTH },
-  //           height: { ideal: this.RESOLUTION_HEIGHT }
-  //         }
-  //       })
-
-  //       if (this.stream) {
-  //         let stream_settings = this.stream.getVideoTracks()[0].getSettings();
-  //         this.WIDTH = stream_settings.width
-  //         this.HEIGHT = stream_settings.height
-
-  //         this.video.nativeElement.srcObject = this.stream;
-  //         // this.video.nativeElement.stop();
-  //         this.video.nativeElement.play();
-  //         this.error = null;
-  //       }
-
-  //     } catch (e) {
-  //       this.error = e;
-  //     }
-  //   }
-
-  // }
-
-  // async capture() {
-  //   // this.drawImageToCanvas(this.video.nativeElement);
-
-  //   const ctx = this.canvas.nativeElement
-  //     .getContext("2d")
-  //   await ctx.drawImage(this.video.nativeElement, 0, 0);
-  //   ctx.imageSmoothingEnabled = false
-
-
-  //   let imageBase64 = this.canvas.nativeElement.toDataURL('image/jpeg')
-  //   const blob = this.b64toBlob(imageBase64)
-
-  //   this.urlOriginal = URL.createObjectURL(blob)
-  //   let date = new Date().getTime()
-  //   let filename: string = String(date)
-  //   var file = this.dataURLtoFile(imageBase64, `${filename}.jpeg`)
-  //   this.imageFull = imageBase64
-  //   this.loadFile(file)
-  //   this.isCaptured = true;
-  //   this.isEditing = true;
-
-  // }
-
-
-  // async drawImageToCanvas(image) {
-  //   const ctx = this.canvas.nativeElement
-  //     .getContext("2d")
-  //   await ctx.drawImage(image, 0, 0);
-  // }
 
   dataURLtoFile(dataUrl, filename) {
     var arr = dataUrl.split(','),
@@ -471,7 +369,7 @@ export class AppComponent implements AfterViewInit, OnInit {
     }) !== -1;
   }
 
-  async editResult(result: Blob) {
+  editResult(result: Blob) {
 
     let date = new Date().toLocaleTimeString()
     let filename: string = `${date.split(':')[0]}${date.split(':')[1]}${date.split(':')[2]}`
@@ -512,10 +410,9 @@ export class AppComponent implements AfterViewInit, OnInit {
     const exitBtn = <HTMLButtonElement>document.querySelector('button[name="exit"]')
     exitBtn.click()
 
-    // await this.onDeviceSelectChange(this.deviceSelectedTemp)
 
-
-    this.exitEditor()
+    this.closeEditor()
+    // this.exitEditor.emit('canceled');
   }
 
   editImage(capture: Capture) {
@@ -531,7 +428,7 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.captures.map((capture, index) => capture.position = index + 1)
 
     if (this.captures.length <= 0 && this.captureEditing != null) {
-      this.exitEditor()
+      this.exitEditor.emit('canceled');
     }
   }
 
@@ -545,7 +442,7 @@ export class AppComponent implements AfterViewInit, OnInit {
   deleteAllImages() {
     this.captures = []
     if (this.captureEditing != null)
-      this.exitEditor()
+    this.exitEditor.emit('canceled');
 
     this.clearCache()
   }
@@ -563,22 +460,13 @@ export class AppComponent implements AfterViewInit, OnInit {
     }
   }
 
-  async exitEditor(message?) {
+  async closeEditor(message?) {
     this.image = null;
     this.isCaptured = false;
     this.urlOriginal = ''
     this.imageFull = ''
     this.captureEditing = null
     this.isEditing = false;
-
-    this.buttonFilterId = 'filter_0'
-
-    this.deviceSelectedTemp = this.deviceSelected
-    // await this.onDeviceSelectChange('')
-
-    // if (this.deviceSelectedTemp != '') {
-    // await this.onDeviceSelectChange(this.deviceSelectedTemp)
-    // }
 
   }
 
@@ -591,62 +479,7 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.processing = processing;
   }
 
-  // actionClick(nameButton: string) {
-  //   const button = <HTMLButtonElement>document.querySelector(`button[name="${nameButton}"]`)
-  //   button.click()
 
-  //   nameButton == this.DONE_CROP && (this.doneCrop = true);
-  //   nameButton == this.ROTATE && (this.doneCrop = false);
-  //   nameButton == this.BACK && (this.doneCrop = false);
-  //   nameButton == this.UPLOAD && (this.doneCrop = false);
-
-  //   this.onFilterClick(nameButton)
-  // }
-
-  // onFilterClick(nameButton: String) {
-  //   if (nameButton == 'filter') {
-  //     const buttons: NodeListOf<HTMLButtonElement> = document.querySelectorAll('button[mat-list-item]')
-  //     buttons.forEach((btn, index) => {
-  //       btn.setAttribute('id', `filter_${index}`)
-  //       btn.classList.add('general-button')
-  //       btn.innerHTML = `
-  //       <div class="mat-list-item-content" style="flex-direction: row; box-sizing: border-box; display: flex;">
-  //       <div mat-ripple="" class="mat-ripple mat-list-item-ripple"></div>
-  //       <div class="mat-list-text"></div>
-  //       <span fxflex="100" style="text-align: start; margin: 5px; flex: 1 1 100%; box-sizing: border-box; max-width: 100%;">
-  //        `+ this.setText(index) + `
-  //       </span>
-  //       <span fxflex="100" style="flex: 1 1 100%; box-sizing: border-box; max-width: 100%;"></span>
-  //       `+ this.setDone(`filter_${index}`) + `
-  //       </div>
-  //       `
-  //       btn.addEventListener('click', (e: any) => {
-  //         if (e.path.length == 13)
-  //           this.buttonFilterId = e.path[2].id
-  //         else
-  //           this.buttonFilterId = e.path[1].id
-  //       })
-  //     })
-
-  //   }
-  // }
-
-  setText(index): string {
-    if (index == 0)
-      return ' Original'
-    if (index == 1)
-      return ' B&W'
-    if (index == 2)
-      return ' B&W 2'
-    if (index == 3)
-      return ' B&W 3'
-    if (index == 4)
-      return 'Magic Color'
-  }
-
-  setDone(btnId): string {
-    return this.buttonFilterId == btnId ? '<i class="fa fa-check"></i>' : ''
-  }
 
   downloadPdf() {
     this.capturesTemp = this.captures
@@ -707,18 +540,20 @@ export class AppComponent implements AfterViewInit, OnInit {
     })
   }
 
-  async selectFile(event) {
+   selectFile(event) {
     this.isEditing = true
     if (event.target.files.item(0)) {
       const file = event.target.files.item(0);
       if (this.isImage(file)) {
         // let imageBase64 = await this.blobToBase64(URL.createObjectURL(file))
         this.imageFull =''// String(imageBase64);
-        this.loadFile(file);
+        // this.loadFile(file);
+        this.image = file;
       } else {
         this.overZone = false;
       }
     }
+
   }
 
   b64toBlob(dataURI) {

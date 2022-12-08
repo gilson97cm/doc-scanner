@@ -11010,7 +11010,7 @@
                       canvas = document.createElement("canvas");
                       canvas.width = img.width;
                       canvas.height = img.height;
-                      ctx = canvas.getContext("2d");
+                      ctx = canvas.getContext("2d",{ willReadFrequently: true } );
                       ctx.drawImage(img, 0, 0, img.width, img.height)
                   } else if (img instanceof HTMLCanvasElement) {
                       canvas = img;
@@ -11056,7 +11056,7 @@
                           return
                   }
                   var imgData = new ImageData(new Uint8ClampedArray(img.data), img.cols, img.rows);
-                  var ctx = canvas.getContext("2d");
+                  var ctx = canvas.getContext("2d", { willReadFrequently: true } );
                   ctx.clearRect(0, 0, canvas.width, canvas.height);
                   canvas.width = imgData.width;
                   canvas.height = imgData.height;

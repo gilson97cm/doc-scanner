@@ -118,4 +118,8 @@ button {
   display: none;
 }
 
-
+.no-scroll{
+  position: fixed;
+  /* position: fixed;
+  padding-bottom: 100px; */
+ }

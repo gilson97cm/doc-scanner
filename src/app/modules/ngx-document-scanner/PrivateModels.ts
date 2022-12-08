@@ -10,7 +10,7 @@
    action: Function;
    text?: string;
    mode?: 'crop' | 'color';
-   color?: 'primary'|'danger'|'success'|'red'|'green';
+   color?: 'primary'|'danger'|'success'|'green'|'red';
  }
  
  /**
